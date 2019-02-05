@@ -169,7 +169,7 @@ function jquery_update_menu() {
     'description' => 'Configure settings related to the jQuery upgrade, the library path and compression.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('jquery_update_settings_form'),
-    'access arguments' => array('administer site configuration'),
+    'access arguments' => array('administer jquery update'),
     'file' => 'jquery_update.admin.inc',
   );
 
@@ -188,7 +188,7 @@ function jquery_update_form_system_theme_settings_alter(&$form, $form_state) {
     '#type' => 'fieldset',
     '#title' => t('jQuery Update'),
     '#description' => t('You can optionally select a different version of jQuery to use for pages that are rendered using this theme. This is useful for administrative based themes.'),
-    '#access' => user_access('administer site configuration') && user_access('access administration pages'),
+    '#access' => user_access('administer jquery update'),
   );
   $form['jquery_update']['jquery_update_jquery_version'] = array(
     '#type' => 'select',
@@ -665,4 +665,16 @@ function jquery_update_jqueryui_local(&$javascript, $path, $min, $names) {
     $javascript[$name]['js'][$corefile]['data'] = $jspath . 'jquery.' . $file_updated . $min . '.js';
     $javascript[$name]['version'] = '1.10.2';
   }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function jquery_update_permission() {
+  return array(
+    'administer jquery update' => array(
+      'title' => t('Administer jQuery Update'),
+      'description' => t('Perform administration tasks for jQuery Update.'),
+    ),
+  );
 }
