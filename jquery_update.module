@@ -242,6 +242,19 @@ function jquery_update_get_version_options($empty = TRUE) {
  */
 function jquery_update_jquery_replace(&$javascript, $cdn, $path, $min, $version) {
 
+  $custom_path = variable_get('jquery_update_custom_path_jquery', FALSE);
+  if ($custom_path !== FALSE) {
+    $javascript['jquery']['js']['misc/jquery.js']['data'] = $custom_path;
+    if (strpos($custom_path, '//') !== FALSE) {
+      $javascript['jquery']['type'] = 'external';
+    }
+    $version = variable_get('jquery_update_custom_version_jquery', FALSE);
+    if ($version !== FALSE) {
+      $javascript['jquery']['version'] = $version;
+    }
+    return;
+  }
+
   // Make sure to use the latest version in given branch.
   $trueversion = NULL;
   switch ($version) {
@@ -472,11 +485,14 @@ function jquery_update_jquery_migrate_backup(&$javascript, $path, $min, $migrate
  *   version.
  */
 function jquery_update_jqueryui_replace(&$javascript, $cdn, $path, $min) {
+
+  $jqueryui_version = variable_get('jquery_update_custom_version_jqueryui', '1.10.2');
+
   // Add new components
   $javascript['ui.menu'] = array(
     'title' => 'jQuery UI: Menu',
     'website' => 'http://jqueryui.com/demos/menu/',
-    'version' => '1.10.2',
+    'version' => $jqueryui_version,
     'js' => array('misc/ui/jquery.ui.menu.min.js' => array()),
     'css' => array('misc/ui/jquery.ui.menu.css' => array()),
     'dependencies' => array(array('system', 'ui.widget'), array('system', 'ui.position')),
@@ -484,7 +500,7 @@ function jquery_update_jqueryui_replace(&$javascript, $cdn, $path, $min) {
   $javascript['ui.spinner'] = array(
     'title' => 'jQuery UI: Spinner',
     'website' => 'http://jqueryui.com/demos/spinner/',
-    'version' => '1.10.2',
+    'version' => $jqueryui_version,
     'js' => array('misc/ui/jquery.ui.spinner.min.js' => array()),
     'css' => array('misc/ui/jquery.ui.spinner.css' => array()),
     'dependencies' => array(array('system', 'ui.widget'), array('system', 'ui.button')),
@@ -492,7 +508,7 @@ function jquery_update_jqueryui_replace(&$javascript, $cdn, $path, $min) {
   $javascript['ui.tooltip'] = array(
     'title' => 'jQuery UI: Spinner',
     'website' => 'http://jqueryui.com/demos/tooltip/',
-    'version' => '1.10.2',
+    'version' => $jqueryui_version,
     'js' => array('misc/ui/jquery.ui.tooltip.min.js' => array()),
     'css' => array('misc/ui/jquery.ui.tooltip.css' => array()),
     'dependencies' => array(array('system', 'ui.widget'), array('system', 'ui.position')),
@@ -524,22 +540,28 @@ function jquery_update_jqueryui_replace(&$javascript, $cdn, $path, $min) {
   $names['effects'] = array('effects.core', 'ui.effect'); // map[library_hook] = array(core_fn, updated_fn)
   $names = jquery_update_make_library_hook_to_file_name_segment_map_for_effects($names);
 
+  $custom_path = variable_get('jquery_update_custom_path_jqueryui', FALSE);
+  if ($custom_path !== FALSE) {
+    jquery_update_jqueryui_cdn($custom_path, $javascript, $path, $min, $names, $jqueryui_version);
+    return;
+  }
+
   switch ($cdn) {
     case 'google':
-      $cdn = '//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui' . $min . '.js';
-      jquery_update_jqueryui_cdn($cdn, $javascript, $path, $min, $names);
+      $cdn = '//ajax.googleapis.com/ajax/libs/jqueryui/' . $jqueryui_version  . 'jquery-ui' . $min . '.js';
+      jquery_update_jqueryui_cdn($cdn, $javascript, $path, $min, $names, $jqueryui_version);
       jquery_update_jqueryui_backup($javascript, $path, $min);
       break;
 
     case 'microsoft':
-      $cdn = '//ajax.aspnetcdn.com/ajax/jquery.ui/1.10.2/jquery-ui' . $min . '.js';
-      jquery_update_jqueryui_cdn($cdn, $javascript, $path, $min, $names);
+      $cdn = '//ajax.aspnetcdn.com/ajax/jquery.ui/' . $jqueryui_version . '/jquery-ui' . $min . '.js';
+      jquery_update_jqueryui_cdn($cdn, $javascript, $path, $min, $names, $jqueryui_version);
       jquery_update_jqueryui_backup($javascript, $path, $min);
       break;
 
     case 'jquery':
-      $cdn = '//code.jquery.com/ui/1.10.2/jquery-ui' . $min . '.js';
-      jquery_update_jqueryui_cdn($cdn, $javascript, $path, $min, $names);
+      $cdn = '//code.jquery.com/ui/' . $jqueryui_version  . '/jquery-ui' . $min . '.js';
+      jquery_update_jqueryui_cdn($cdn, $javascript, $path, $min, $names, $jqueryui_version);
       jquery_update_jqueryui_backup($javascript, $path, $min);
       break;
 
@@ -612,7 +634,7 @@ function jquery_update_jqueryui_backup(&$javascript, $path, $min) {
  * * @param array $names
  *   An array mapping jquery ui parts to their file names.
  */
-function jquery_update_jqueryui_cdn($cdn, &$javascript, $path, $min, $names) {
+function jquery_update_jqueryui_cdn($cdn, &$javascript, $path, $min, $names, $jqueryui_version) {
 
   // Construct the jQuery UI path and replace the JavaScript.
   $jspath = $path . '/replace/ui/ui/' . ($min == '.min' ? 'minified/' : '');
@@ -621,7 +643,7 @@ function jquery_update_jqueryui_cdn($cdn, &$javascript, $path, $min, $names) {
     $corefile = 'misc/ui/jquery.' . $file_core . '.min.js';
     // Remove the core files.
     unset($javascript[$name]['js'][$corefile]);
-    $javascript[$name]['version'] = '1.10.2';
+    $javascript[$name]['version'] = $jqueryui_version;
   }
 
   // UI is used by all of UI. Add the js cdn here.
