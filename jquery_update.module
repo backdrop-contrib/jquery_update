@@ -417,7 +417,7 @@ function jquery_update_jquery_migrate_replace(&$libraries, $path, $min, $version
   if ($custom_path === FALSE) {
     if (variable_get('jquery_update_jquery_migrate_cdn', 'none') === 'jquery') {
       $default_migrate_version = ($migrate_version === '3') ? '3.0.0' : '1.4.1';
-      $jquery_migrate_cdn_version = variable_get('jquery_update_custom_jquery_migrate_version', FALSE);
+      $jquery_migrate_cdn_version = variable_get('jquery_update_custom_version_jquery_migrate', FALSE);
       if ($jquery_migrate_cdn_version !== FALSE) {
         $migrate_version = $jquery_migrate_cdn_version;
       }
@@ -435,7 +435,7 @@ function jquery_update_jquery_migrate_replace(&$libraries, $path, $min, $version
     if (strpos($custom_path, '//') !== FALSE) {
       $libraries['jquery.migrate']['js'][$file]['type'] = 'external';
     }
-    $version = variable_get('jquery_update_custom_jquery_migrate_version', FALSE);
+    $version = variable_get('jquery_update_custom_version_jquery_migrate', FALSE);
     if ($version !== FALSE) {
       $libraries['jquery.migrate']['version'] = $version;
     }
@@ -725,7 +725,7 @@ function jquery_update_jquery_cookie_replace(&$libraries, $path, $min) {
     if (strpos($custom_path, '//') !== FALSE) {
       $libraries['cookie']['type'] = 'external';
     }
-    $version = variable_get('jquery_update_custom_jquery_cookie_version', FALSE);
+    $version = variable_get('jquery_update_custom_version_jquery_cookie', FALSE);
     if ($version !== FALSE) {
       $libraries['cookie']['version'] = $version;
     }
@@ -778,7 +778,7 @@ function jquery_update_jquery_form_replace(&$libraries, $path, $min, $jquery_ver
     if (strpos($custom_path, '//') !== FALSE) {
       $libraries['jquery.form']['type'] = 'external';
     }
-    $version = variable_get('jquery_update_custom_jquery_form_version', FALSE);
+    $version = variable_get('jquery_update_custom_version_jquery_form', FALSE);
     if ($version !== FALSE) {
       $libraries['jquery.form']['version'] = $version;
     }
