@@ -400,19 +400,32 @@ function jquery_update_jquery_migrate_replace(&$libraries, $path, $min, $version
   );
 
   // Check for CDN support.
-  if (variable_get('jquery_update_jquery_migrate_cdn', 'none') === 'jquery') {
-    $default_migrate_version = ($migrate_version === '3') ? '3.0.0' : '1.4.1';
-    $jquery_migrate_cdn_version = variable_get('jquery_update_jquery_migrate_cdn_version', FALSE);
-    if ($jquery_migrate_cdn_version !== FALSE) {
-      $migrate_version = $jquery_migrate_cdn_version;
-    }
-    else {
-      $migrate_version = $default_migrate_version;
-    }
+  $custom_path = variable_get('jquery_update_custom_path_migrate', FALSE);
+  if ($custom_path === FALSE) {
+    if (variable_get('jquery_update_jquery_migrate_cdn', 'none') === 'jquery') {
+      $default_migrate_version = ($migrate_version === '3') ? '3.0.0' : '1.4.1';
+      $jquery_migrate_cdn_version = variable_get('jquery_update_custom_jquery_migrate_version', FALSE);
+      if ($jquery_migrate_cdn_version !== FALSE) {
+        $migrate_version = $jquery_migrate_cdn_version;
+      }
+      else {
+        $migrate_version = $default_migrate_version;
+      }
 
-    $libraries['jquery.migrate']['js'][$file]['data'] = '//code.jquery.com/jquery-migrate-' . $migrate_version . $min . '.js';
-    $libraries['jquery.migrate']['js'][$file]['type'] = 'external';
-    jquery_update_jquery_migrate_backup($libraries, $path, $min, $default_migrate_version);
+      $libraries['jquery.migrate']['js'][$file]['data'] = '//code.jquery.com/jquery-migrate-' . $migrate_version . $min . '.js';
+      $libraries['jquery.migrate']['js'][$file]['type'] = 'external';
+      jquery_update_jquery_migrate_backup($libraries, $path, $min, $default_migrate_version);
+    }
+  }
+  else {
+    $libraries['jquery.migrate']['js'][$file]['data'] = $custom_path;
+    if (strpos($custom_path, '//') !== FALSE) {
+      $libraries['jquery.migrate']['js'][$file]['type'] = 'external';
+    }
+    $version = variable_get('jquery_update_custom_jquery_migrate_version', FALSE);
+    if ($version !== FALSE) {
+      $libraries['jquery.migrate']['version'] = $version;
+    }
   }
 
   // Add jQuery Migrate as a dependency to jQuery.
@@ -678,16 +691,16 @@ function jquery_update_permission() {
  *   The jQuery version to be used.
  */
 function jquery_update_jquery_cookie_replace(&$libraries, $path, $min) {
-  $custom_cdn_url = variable_get('jquery_update_custom_cdn_path_cookie', FALSE);
-  if ($custom_cdn_url === FALSE) {
+  $custom_path = variable_get('jquery_update_custom_path_cookie', FALSE);
+  if ($custom_path === FALSE) {
     // Replace the jQuery Cookie plugin.
     $libraries['cookie']['js']['misc/jquery.cookie.js']['data'] = $path . '/replace/ui/external/jquery.cookie.js';
     // Noting the version based on git commit as no version number is available.
     $libraries['cookie']['version'] = '67fb34f6a866c40d0570';
   }
   else {
-    $libraries['cookie']['js']['misc/jquery.cookie.js']['data'] = $custom_cdn_url;
-    if (strpos($custom_cdn_url, '//') !== FALSE) {
+    $libraries['cookie']['js']['misc/jquery.cookie.js']['data'] = $custom_path;
+    if (strpos($custom_path, '//') !== FALSE) {
       $libraries['cookie']['type'] = 'external';
     }
     $version = variable_get('jquery_update_custom_jquery_cookie_version', FALSE);
@@ -711,8 +724,8 @@ function jquery_update_jquery_cookie_replace(&$libraries, $path, $min) {
  *   The jQuery version to be used.
  */
 function jquery_update_jquery_form_replace(&$libraries, $path, $min, $jquery_version) {
-  $custom_cdn_url = variable_get('jquery_update_custom_cdn_path_form', FALSE);
-  if ($custom_cdn_url === FALSE) {
+  $custom_path = variable_get('jquery_update_custom_path_form', FALSE);
+  if ($custom_path === FALSE) {
     // Replace jQuery Form.
     $libraries['jquery.form']['website'] = 'https://github.com/jquery-form/form';
     $jquery_form_versions = array(
@@ -739,8 +752,8 @@ function jquery_update_jquery_form_replace(&$libraries, $path, $min, $jquery_ver
     }
   }
   else {
-    $libraries['jquery.form']['js']['misc/jquery.form.js']['data'] = $custom_cdn_url;
-    if (strpos($custom_cdn_url, '//') !== FALSE) {
+    $libraries['jquery.form']['js']['misc/jquery.form.js']['data'] = $custom_path;
+    if (strpos($custom_path, '//') !== FALSE) {
       $libraries['jquery.form']['type'] = 'external';
     }
     $version = variable_get('jquery_update_custom_jquery_form_version', FALSE);
