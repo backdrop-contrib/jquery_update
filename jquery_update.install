@@ -11,14 +11,46 @@
 function jquery_update_requirements($phase) {
   $requirements = array();
 
+  $jquery_supported_versions = array(
+    '1.4.4',
+    '1.12.4',
+    '2.2.4',
+  );
+  $jquery_ui_supported_versions = array(
+    '1.8.7',
+    '1.10.2',
+  );
+
   if ($phase == 'runtime') {
     $t = get_t();
     $jquery = drupal_get_library('system', 'jquery');
     $ui = drupal_get_library('system', 'ui');
+
+    $jquery_supported = in_array($jquery['version'], $jquery_supported_versions);
+    $jquery_ui_supported = in_array($ui['version'], $jquery_ui_supported_versions);
+
+    if ($jquery_supported && $jquery_ui_supported) {
+      $severity = REQUIREMENT_OK;
+      $message = t('The installed versions of jQuery and jQuery UI have Security Coverage.');
+    }
+    else {
+      $severity = REQUIREMENT_WARNING;
+      $message = t('The installed versions of jQuery and jQuery UI may not have Security Coverage.') . ' ' .
+        t('Check the <a href="@drupal-jquery_update">jQuery Update project page</a> for more details.', array(
+        '@drupal-jquery_update' => 'https://drupal.org/project/jquery_update')
+      );
+    }
+
     $requirements['jquery_update'] = array(
       'title' => $t('jQuery Update'),
-      'severity' => REQUIREMENT_OK,
-      'value' => t('jQuery %jquery (<a href="@link">configure</a>) and jQuery UI %ui', array('%jquery' => $jquery['version'], '%ui' => $ui['version'], '@link' => url('admin/config/development/jquery_update'))),
+      'severity' => $severity,
+      'value' => t('jQuery %jquery (<a href="@link">configure</a>) and jQuery UI %ui', array(
+          '%jquery' => $jquery['version'],
+          '%ui' => $ui['version'],
+          '@link' => url('admin/config/development/jquery_update')
+        )
+      ),
+      'description' => $message,
     );
   }
 
