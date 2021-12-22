@@ -19,6 +19,10 @@ function jquery_update_settings_form() {
 
   // Provide the form item to choose which jQuery version to use.
   $default_version = variable_get('jquery_update_jquery_version', '1.10');
+  $custom_jquery = variable_get('jquery_update_custom_version_jquery', FALSE);
+  if (!empty($custom_jquery)) {
+    $default_version = $custom_jquery;
+  }
   $version_options = jquery_update_get_version_options(FALSE);
   $form['jquery_update_jquery_version'] = array(
     '#type' => 'select',

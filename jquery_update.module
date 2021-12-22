@@ -232,11 +232,15 @@ function jquery_update_get_version_options($empty = TRUE) {
 
 function jquery_update_get_supported_version_options() {
   $jquery_supported_versions = jquery_update_get_supported_versions();
-  $supported_options = array();
+  $options = array();
   foreach (jquery_update_get_versions() as $version) {
-    $supported_options[$version] = $version . ' ' . (in_array($version, $jquery_supported_versions) ? t('(Supported)') : t('(Unsupported)'));
+    $options[$version] = $version . ' ' . (in_array($version, $jquery_supported_versions) ? t('(Supported)') : t('(Unsupported)'));
   }
-  return $supported_options;
+  $custom_jquery = variable_get('jquery_update_custom_version_jquery', FALSE);
+  if (!empty($custom_jquery)) {
+    $options[$custom_jquery] = $custom_jquery . ' (Custom)';
+  }
+  return $options;
 }
 
 /**
