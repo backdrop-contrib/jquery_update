@@ -735,7 +735,7 @@ function jquery_update_permission() {
  */
 function jquery_update_jquery_cookie_replace(&$libraries, $path, $min) {
   $custom_path = variable_get('jquery_update_custom_path_cookie', FALSE);
-  if ($custom_path === FALSE) {
+  if (empty($custom_path)) {
     // Replace the jQuery Cookie plugin.
     $libraries['cookie']['js']['misc/jquery.cookie.js']['data'] = $path . '/replace/ui/external/jquery.cookie.js';
     // Noting the version based on git commit as no version number is available.
@@ -768,7 +768,7 @@ function jquery_update_jquery_cookie_replace(&$libraries, $path, $min) {
  */
 function jquery_update_jquery_form_replace(&$libraries, $path, $min, $jquery_version) {
   $custom_path = variable_get('jquery_update_custom_path_form', FALSE);
-  if ($custom_path === FALSE) {
+  if (empty($custom_path)) {
     // Replace jQuery Form.
     $libraries['jquery.form']['website'] = 'https://github.com/jquery-form/form';
     $jquery_form_versions = array(
