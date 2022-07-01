@@ -67,7 +67,12 @@ function jquery_update_requirements($phase) {
       $theme_name = $themes[$theme_key]->info['name'];
 
       $requirements['jquery_update_' . $theme] = array(
-        'title' => $t('jQuery Update') . " ($theme: $theme_name)",
+        'title' => $t('jQuery Update') . ' (' .
+          format_string('@theme: %theme_name', array(
+              '@theme' => $theme,
+              '%theme_name' => $theme_name
+            )
+          ) . ')',
         'severity' => $severity,
         'value' => t('jQuery %jquery (<a href="@link">configure</a>) and jQuery UI %ui', array(
             '%jquery' => $library_version['jquery'],
