@@ -532,7 +532,10 @@ function jquery_update_jquery_migrate_backup(&$javascript, $path, $min, $migrate
  */
 function jquery_update_jqueryui_replace(&$javascript, $cdn, $path, $min) {
 
-  $jqueryui_version = variable_get('jquery_update_custom_version_jqueryui', '1.10.2');
+  $jqueryui_version = variable_get('jquery_update_custom_version_jqueryui', FALSE);
+  if (empty($jqueryui_version)) {
+    $jqueryui_version = '1.10.2';
+  }
 
   // Add new components
   $javascript['ui.menu'] = array(
