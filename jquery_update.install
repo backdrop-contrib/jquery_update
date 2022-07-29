@@ -16,10 +16,18 @@ function jquery_update_requirements($phase) {
     '1.12.4',
     '2.2.4',
   );
+  $latest_jquery = jquery_update_latest_version();
+  if (!empty($latest_jquery)) {
+    $jquery_supported_versions[] = $latest_jquery;
+  }
   $jquery_ui_supported_versions = array(
     '1.8.7',
     '1.10.2',
   );
+  $latest_jquery_ui = jquery_update_latest_version('jqueryui');
+  if (!empty($latest_jquery_ui)) {
+    $jquery_ui_supported_versions[] = $latest_jquery_ui;
+  }
 
   if ($phase == 'runtime') {
     $t = get_t();

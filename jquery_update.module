@@ -830,3 +830,33 @@ function jquery_update_jquery_form_replace(&$libraries, $path, $min, $jquery_ver
     }
   }
 }
+
+/**
+ * Query and store latest versions of jQuery libraries.
+ */
+function jquery_update_latest_version($library = 'jquery', $refresh = FALSE) {
+  $check_enabled = variable_get('jquery_update_check_latest_versions', TRUE);
+  $version = variable_get('jquery_update_latest_version_' . $library, FALSE);
+  if ($check_enabled && ($refresh || empty($version))) {
+    $r = drupal_http_request('https://api.cdnjs.com/libraries/' . $library . '?fields=version');
+    if ($r->code == 200) {
+      $version = json_decode($r->data)->version;
+      variable_set('jquery_update_latest_version_' . $library, $version);
+    }
+  }
+  return $version;
+}
+
+/**
+ * Implements hook_cron().
+ */
+function jquery_update_cron() {
+  $last_update = variable_get('jquery_update_latest_versions_checked', FALSE);
+  if (!$last_update || (REQUEST_TIME - $last_update) >= 24 * 60 * 60) {
+    $jquery = jquery_update_latest_version('jquery', TRUE);
+    $jqueryui = jquery_update_latest_version('jqueryui', TRUE);
+    if (!empty($jquery) && !empty($jqueryui)) {
+      variable_set('jquery_update_latest_versions_checked', REQUEST_TIME);
+    }
+  }
+}
