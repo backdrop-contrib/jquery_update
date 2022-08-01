@@ -555,7 +555,7 @@ function jquery_update_jqueryui_replace(&$javascript, $cdn, $path, $min) {
     'dependencies' => array(array('system', 'ui.widget'), array('system', 'ui.button')),
   );
   $javascript['ui.tooltip'] = array(
-    'title' => 'jQuery UI: Spinner',
+    'title' => 'jQuery UI: Tooltip',
     'website' => 'http://jqueryui.com/demos/tooltip/',
     'version' => $jqueryui_version,
     'js' => array('misc/ui/jquery.ui.tooltip.min.js' => array()),
