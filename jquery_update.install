@@ -11,6 +11,11 @@
 function jquery_update_requirements($phase) {
   $requirements = array();
 
+  if ($phase == 'install') {
+    // jquery_update_latest_version() is defined in jquery_update.module.
+    module_load_include('module', 'jquery_update');
+  }
+
   $jquery_supported_versions = array(
     '1.4.4',
     '1.12.4',
