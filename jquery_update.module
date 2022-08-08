@@ -249,7 +249,7 @@ function jquery_update_get_supported_version_options() {
   }
   $custom_jquery = variable_get('jquery_update_custom_version_jquery', FALSE);
   if (!empty($custom_jquery)) {
-    $options[$custom_jquery] = $custom_jquery . ' (Custom)';
+    $options[$custom_jquery] = $custom_jquery . ' ' . t('(Custom)');
   }
   return $options;
 }
