@@ -843,8 +843,12 @@ function jquery_update_latest_version($library = 'jquery', $refresh = FALSE) {
   if ($check_enabled && ($refresh || empty($version))) {
     $r = drupal_http_request('https://api.cdnjs.com/libraries/' . $library . '?fields=version');
     if ($r->code == 200) {
+      $old_version = $version;
       $version = json_decode($r->data)->version;
-      variable_set('jquery_update_latest_version_' . $library, $version);
+      if ($version != $old_version) {
+        watchdog('jquery_update', 'Updated latest %library version to %version', array('%library' => $library, '%version' => $version));
+        variable_set('jquery_update_latest_version_' . $library, $version);
+      }
     }
   }
   return $version;
