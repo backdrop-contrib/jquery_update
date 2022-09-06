@@ -1,0 +1,73 @@
+<?php
+
+/**
+ * @file
+ * Tests for jQuery Update module.
+ */
+
+/**
+ * Functional tests for jQuery Update.
+ */
+class JqueryUpdateTestCase extends DrupalWebTestCase {
+
+  /**
+   * Admin user for tests.
+   *
+   * @var object
+   */
+  private $admin;
+
+  /**
+   * Implements getInfo().
+   *
+   * @see DrupalWebTestCase::getInfo()
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('jQuery Update functionality'),
+      'description' => t('Tests functionality of the jQuery Update module.'),
+      'group' => t('jQuery Update'),
+    );
+  }
+
+  /**
+   * Implements setUp().
+   *
+   * @see DrupalWebTestCase::setUp()
+   */
+  public function setUp() {
+    parent::setUp('jquery_update', 'jquery_update_test');
+    $this->admin = $this->drupalCreateUser(array('administer jquery update'));
+    $this->drupalLogin($this->admin);
+  }
+
+  /**
+   * Tests Custom Paths set via the admin form.
+   */
+  public function testCustomPathsViaAdminForm() {
+    $form = array(
+      'jquery_update_custom_path_jquery' => "https://code.jquery.com/jquery-3.6.0.js",
+      'jquery_update_custom_version_jquery' => "3.6.0",
+      'jquery_update_custom_path_jqueryui' => "https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.0/jquery-ui.min.js",
+      'jquery_update_custom_version_jqueryui' => "1.13.0",
+      'jquery_update_custom_path_cookie' => "/sites/default/files/jquery_update/jquery.cookie.js",
+      'jquery_update_custom_version_jquery_cookie' => "1.4.1",
+      'jquery_update_custom_path_form' => "/sites/default/files/jquery_update/jquery.form.js",
+      'jquery_update_custom_version_jquery_form' => "4.2.1",
+      'jquery_update_custom_path_migrate' => "https://cdn.jsdelivr.net/npm/jquery-migrate@3.3.2/dist/jquery-migrate.min.js",
+      'jquery_update_custom_version_jquery_migrate' => "3.3.2",
+    );
+    $this->drupalPost('/admin/config/development/jquery_update', $form, t('Save configuration'));
+
+    // n.b. a request from an anon user would not see the same script elements.
+    $this->drupalGet('/');
+    $debug = $this->drupalGetContent();
+    file_put_contents('/mnt/tmp/debug.txt', print_r($debug, TRUE), FILE_APPEND);
+    $this->assertRaw('<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js?v=3.6.0"></script>', 'Custom jQuery 3.6.0 from jQuery CDN');
+    $this->assertRaw('<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.0/jquery-ui.min.js"></script>', 'Custom jQueryUI 1.13.0 from Cloudflare CDN');
+    $this->assertRaw('<script type="text/javascript" src="/sites/default/files/jquery_update/jquery.cookie.js?v=1.4.1"></script>', 'Custom jQuery Cookie 1.4.1 from local path');
+
+    // This could really be in a separate test.
+    $this->assertRaw('sites/all/modules/contrib/jquery_update/js/jquery_browser.js?v=0.0.1"></script>', 'jQuery browser fix 0.0.1');
+  }
+}

@@ -1,0 +1,6 @@
+name = jQuery Update test
+description = Provides jQuery Update test functionality.
+package = Testing
+version = VERSION
+core = 7.x
+hidden = TRUE

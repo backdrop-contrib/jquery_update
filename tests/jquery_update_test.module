@@ -1,0 +1,6 @@
+<?php
+
+function jquery_update_test_init() {
+  drupal_add_library('system', 'ui.autocomplete');
+  drupal_add_library('system', 'cookie');
+}
