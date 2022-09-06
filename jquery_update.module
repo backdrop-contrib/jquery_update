@@ -277,9 +277,7 @@ function jquery_update_jquery_replace(&$javascript, $cdn, $path, $min, $version)
   $custom_path = variable_get('jquery_update_custom_path_jquery', FALSE);
   if (!empty($custom_path)) {
     $javascript['jquery']['js']['misc/jquery.js']['data'] = $custom_path;
-    if (strpos($custom_path, '//') !== FALSE) {
-      $javascript['jquery']['type'] = 'external';
-    }
+    $javascript['jquery']['type'] = url_is_external($custom_path) ? 'external' : 'file';
     $version = variable_get('jquery_update_custom_version_jquery', FALSE);
     if (!empty($version)) {
       $javascript['jquery']['version'] = $version;
@@ -698,7 +696,7 @@ function jquery_update_jqueryui_cdn($cdn, &$javascript, $path, $min, $names, $jq
   // UI is used by all of UI. Add the js cdn here.
   $javascript['ui']['js'][$cdn] = array(
     'data' => $cdn,
-    'type' => 'external',
+    'type' => url_is_external($cdn) ? 'external' : 'file',
     'group' => JS_LIBRARY,
     'weight' => -11,
   );

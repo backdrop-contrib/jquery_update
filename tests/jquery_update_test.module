@@ -1,6 +1,11 @@
 <?php
 
+/**
+ * Implements hook_init().
+ */
 function jquery_update_test_init() {
+  // Add libraries so that the script tags appear in basic pages.
   drupal_add_library('system', 'ui.autocomplete');
+  drupal_add_library('system', 'jquery.form');
   drupal_add_library('system', 'cookie');
 }

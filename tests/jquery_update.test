@@ -44,11 +44,15 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
   /**
    * Tests Custom Paths set via the admin form.
    */
-  public function testCustomPathsViaAdminForm() {
+  public function testCustomPaths() {
+
+    // n.b. version numbers are arbitrary in most cases here, so probably no
+    // real need update them as new releases come out.
+
     $form = array(
       'jquery_update_custom_path_jquery' => "https://code.jquery.com/jquery-3.6.0.js",
       'jquery_update_custom_version_jquery' => "3.6.0",
-      'jquery_update_custom_path_jqueryui' => "https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.0/jquery-ui.min.js",
+      'jquery_update_custom_path_jqueryui' => "/sites/default/files/jquery_update/jquery-ui.min.js",
       'jquery_update_custom_version_jqueryui' => "1.13.0",
       'jquery_update_custom_path_cookie' => "/sites/default/files/jquery_update/jquery.cookie.js",
       'jquery_update_custom_version_jquery_cookie' => "1.4.1",
@@ -56,18 +60,40 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
       'jquery_update_custom_version_jquery_form' => "4.2.1",
       'jquery_update_custom_path_migrate' => "https://cdn.jsdelivr.net/npm/jquery-migrate@3.3.2/dist/jquery-migrate.min.js",
       'jquery_update_custom_version_jquery_migrate' => "3.3.2",
+      'jquery_update_jquery_migrate_enable' => TRUE,
     );
     $this->drupalPost('/admin/config/development/jquery_update', $form, t('Save configuration'));
 
     // n.b. a request from an anon user would not see the same script elements.
     $this->drupalGet('/');
-    $debug = $this->drupalGetContent();
-    file_put_contents('/mnt/tmp/debug.txt', print_r($debug, TRUE), FILE_APPEND);
     $this->assertRaw('<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js?v=3.6.0"></script>', 'Custom jQuery 3.6.0 from jQuery CDN');
-    $this->assertRaw('<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.0/jquery-ui.min.js"></script>', 'Custom jQueryUI 1.13.0 from Cloudflare CDN');
+    $this->assertRaw('<script type="text/javascript" src="/sites/default/files/jquery_update/jquery-ui.min.js?v=1.13.0"></script>', 'Custom jQueryUI 1.13.0 from local path');
     $this->assertRaw('<script type="text/javascript" src="/sites/default/files/jquery_update/jquery.cookie.js?v=1.4.1"></script>', 'Custom jQuery Cookie 1.4.1 from local path');
+    $this->assertRaw('<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery-migrate@3.3.2/dist/jquery-migrate.min.js"></script>', 'Custom jQuery Migrate 3.3.2 from jsDelivr CDN');
 
     // This could really be in a separate test.
     $this->assertRaw('sites/all/modules/contrib/jquery_update/js/jquery_browser.js?v=0.0.1"></script>', 'jQuery browser fix 0.0.1');
+
+    // Test some different local vs. CDN custom paths.
+    $form = array(
+      'jquery_update_custom_path_jquery' => "/sites/default/files/jquery_update/jquery.js",
+      'jquery_update_custom_version_jquery' => "3.6.0",
+      'jquery_update_custom_path_jqueryui' => "https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js",
+      'jquery_update_custom_version_jqueryui' => "1.12.1",
+      'jquery_update_custom_path_cookie' => "https://cdn.jsdelivr.net/gh/carhartl/jquery-cookie@1.4.1/jquery.cookie.js",
+      'jquery_update_custom_version_jquery_cookie' => "1.4.1",
+      'jquery_update_custom_path_form' => "https://cdn.jsdelivr.net/gh/jquery-form/form@4.2.1/dist/jquery.form.min.js",
+      'jquery_update_custom_version_jquery_form' => "4.2.1",
+      'jquery_update_custom_path_migrate' => "/sites/default/files/jquery_update/jquery-migrate.js",
+      'jquery_update_custom_version_jquery_migrate' => "3.3.2",
+      'jquery_update_jquery_migrate_enable' => TRUE,
+    );
+    $this->drupalPost('/admin/config/development/jquery_update', $form, t('Save configuration'));
+
+    $this->drupalGet('/');
+    $this->assertRaw('<script type="text/javascript" src="/sites/default/files/jquery_update/jquery.js?v=3.6.0"></script>', 'Custom jQuery 3.6.0 from local path');
+    $this->assertRaw('<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>', 'Custom jQueryUI 1.12.1 from Cloudflare CDN');
+    $this->assertRaw('<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/carhartl/jquery-cookie@1.4.1/jquery.cookie.js?v=1.4.1"></script>', 'Custom jQuery Cookie 1.4.1 from jsDelivr CDN');
+    $this->assertRaw('<script type="text/javascript" src="/sites/default/files/jquery_update/jquery-migrate.js?v=3.3.2"></script>', 'Custom jQuery Migrate 3.3.2 from local path');
   }
 }
