@@ -72,9 +72,6 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
     $this->assertRaw('<script type="text/javascript" src="/sites/default/files/jquery_update/jquery.form.js?v=4.2.1"></script>', 'Custom jQuery Form 4.2.1 from local path');
     $this->assertRaw('<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery-migrate@3.3.2/dist/jquery-migrate.min.js"></script>', 'Custom jQuery Migrate 3.3.2 from jsDelivr CDN');
 
-    // @todo this should be in a separate test (and the path is not correct in drupalci) so needs work.
-    // $this->assertRaw('sites/all/modules/contrib/jquery_update/js/jquery_browser.js?v=0.0.1"></script>', 'jQuery browser fix 0.0.1');
-
     // Test some different local vs. CDN custom paths.
     $form = array(
       'jquery_update_custom_path_jquery' => "/sites/default/files/jquery_update/jquery.js",
@@ -97,5 +94,10 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
     $this->assertRaw('<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/carhartl/jquery-cookie@1.4.1/jquery.cookie.js?v=1.4.1"></script>', 'Custom jQuery Cookie 1.4.1 from jsDelivr CDN');
     $this->assertRaw('<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/jquery-form/form@4.2.1/dist/jquery.form.min.js?v=4.2.1"></script>', 'Custom jQuery Form 4.2.1 from jsDelivr CDN');
     $this->assertRaw('<script type="text/javascript" src="/sites/default/files/jquery_update/jquery-migrate.js?v=3.3.2"></script>', 'Custom jQuery Migrate 3.3.2 from local path');
+
+    // jQuery browser fix for jQuery >= 1.9
+    // n.b. the full script tag looks like this in drupalci:
+    // <script type="text/javascript" src="http://localhost/sites/all/modules/jquery_update/js/jquery_browser.js?v=0.0.1"></script>
+    $this->assertRaw('/jquery_update/js/jquery_browser.js?v=0.0.1"></script>', 'jQuery browser fix 0.0.1');
   }
 }
