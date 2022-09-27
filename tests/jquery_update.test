@@ -42,7 +42,7 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Tests Custom Paths set via the admin form.
+   * Tests that Custom Paths set via the admin form appear in a page's HTML.
    */
   public function testCustomPaths() {
 
@@ -66,7 +66,7 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
 
     // n.b. a request from an anon user might not see the same script elements.
     $this->drupalGet('/');
-    $this->assertRaw('<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js?v=3.6.0"></script>', 'Custom jQuery 3.6.0 from jQuery CDN');
+    $this->assertRaw('<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.js"></script>', 'Custom jQuery 3.6.0 from jQuery CDN');
     $this->assertRaw('<script type="text/javascript" src="/sites/default/files/jquery_update/jquery-ui.min.js?v=1.13.0"></script>', 'Custom jQueryUI 1.13.0 from local path');
     $this->assertRaw('<script type="text/javascript" src="/sites/default/files/jquery_update/jquery.cookie.js?v=1.4.1"></script>', 'Custom jQuery Cookie 1.4.1 from local path');
     $this->assertRaw('<script type="text/javascript" src="/sites/default/files/jquery_update/jquery.form.js?v=4.2.1"></script>', 'Custom jQuery Form 4.2.1 from local path');
@@ -91,8 +91,8 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
     $this->drupalGet('/');
     $this->assertRaw('<script type="text/javascript" src="/sites/default/files/jquery_update/jquery.js?v=3.6.0"></script>', 'Custom jQuery 3.6.0 from local path');
     $this->assertRaw('<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>', 'Custom jQueryUI 1.12.1 from Cloudflare CDN');
-    $this->assertRaw('<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/carhartl/jquery-cookie@1.4.1/jquery.cookie.js?v=1.4.1"></script>', 'Custom jQuery Cookie 1.4.1 from jsDelivr CDN');
-    $this->assertRaw('<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/jquery-form/form@4.2.1/dist/jquery.form.min.js?v=4.2.1"></script>', 'Custom jQuery Form 4.2.1 from jsDelivr CDN');
+    $this->assertRaw('<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/carhartl/jquery-cookie@1.4.1/jquery.cookie.js"></script>', 'Custom jQuery Cookie 1.4.1 from jsDelivr CDN');
+    $this->assertRaw('<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/jquery-form/form@4.2.1/dist/jquery.form.min.js"></script>', 'Custom jQuery Form 4.2.1 from jsDelivr CDN');
     $this->assertRaw('<script type="text/javascript" src="/sites/default/files/jquery_update/jquery-migrate.js?v=3.3.2"></script>', 'Custom jQuery Migrate 3.3.2 from local path');
 
     // jQuery browser fix for jQuery >= 1.9
@@ -100,4 +100,61 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
     // <script type="text/javascript" src="http://localhost/sites/all/modules/jquery_update/js/jquery_browser.js?v=0.0.1"></script>
     $this->assertRaw('/jquery_update/js/jquery_browser.js?v=0.0.1"></script>', 'jQuery browser fix 0.0.1');
   }
+
+  /**
+   * Tests that external Custom Paths are added to the JS API correctly.
+   */
+  public function testCustomPathsJsApiExternal() {
+
+    $form = array(
+      'jquery_update_custom_path_jquery' => "https://code.jquery.com/jquery-3.6.1.js",
+      'jquery_update_custom_version_jquery' => "3.6.1",
+      'jquery_update_custom_path_jqueryui' => "https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.1/jquery-ui.min.js",
+      'jquery_update_custom_version_jqueryui' => "1.13.1",
+      'jquery_update_custom_path_cookie' => "https://cdn.jsdelivr.net/gh/carhartl/jquery-cookie@1.4.1/jquery.cookie.js",
+      'jquery_update_custom_version_jquery_cookie' => "1.4.1",
+      'jquery_update_custom_path_form' => "https://cdn.jsdelivr.net/gh/jquery-form/form@4.2.1/dist/jquery.form.min.js",
+      'jquery_update_custom_version_jquery_form' => "4.2.1",
+      'jquery_update_custom_path_migrate' => "https://cdn.jsdelivr.net/npm/jquery-migrate@3.3.2/dist/jquery-migrate.min.js",
+      'jquery_update_custom_version_jquery_migrate' => "3.3.2",
+      'jquery_update_jquery_migrate_enable' => TRUE,
+    );
+    $this->drupalPost('/admin/config/development/jquery_update', $form, t('Save configuration'));
+
+    $js = json_decode($this->drupalGet('/jquery-update-test/drupal-add-js'), TRUE);
+    $keys = preg_grep('/custom_path/', array_keys($form));
+    foreach ($keys as $custom_path) {
+      $message = format_string('External custom @path set as external', array('@path' => $custom_path));
+      $this->assertEqual($js[$form[$custom_path]]['type'], 'external', $message);
+    }
+  }
+
+  /**
+   * Tests that relative Custom Paths are added to the JS API correctly.
+   */
+  public function testCustomPathsJsApiRelative() {
+
+    $form = array(
+      'jquery_update_custom_path_jquery' => "/sites/default/files/jquery_update/jquery.js",
+      'jquery_update_custom_version_jquery' => "3.6.1",
+      'jquery_update_custom_path_jqueryui' => "/sites/default/files/jquery_update/jquery-ui.min.js",
+      'jquery_update_custom_version_jqueryui' => "1.13.0",
+      'jquery_update_custom_path_cookie' => "/sites/default/files/jquery_update/jquery.cookie.js",
+      'jquery_update_custom_version_jquery_cookie' => "1.4.1",
+      'jquery_update_custom_path_form' => "/sites/default/files/jquery_update/jquery.form.js",
+      'jquery_update_custom_version_jquery_form' => "4.2.1",
+      'jquery_update_custom_path_migrate' => "/sites/default/files/jquery_update/jquery-migrate.js",
+      'jquery_update_custom_version_jquery_migrate' => "3.3.2",
+      'jquery_update_jquery_migrate_enable' => TRUE,
+    );
+    $this->drupalPost('/admin/config/development/jquery_update', $form, t('Save configuration'));
+
+    $js = json_decode($this->drupalGet('/jquery-update-test/drupal-add-js'), TRUE);
+    $keys = preg_grep('/custom_path/', array_keys($form));
+    foreach ($keys as $custom_path) {
+      $message = format_string('Relative custom @path not set as external', array('@path' => $custom_path));
+      $this->assertEqual($js[$form[$custom_path]]['type'], 'file', $message);
+    }
+  }
+
 }

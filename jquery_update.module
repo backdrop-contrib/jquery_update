@@ -276,7 +276,7 @@ function jquery_update_jquery_replace(&$javascript, $cdn, $path, $min, $version)
   $custom_path = variable_get('jquery_update_custom_path_jquery', FALSE);
   if (!empty($custom_path)) {
     $javascript['jquery']['js']['misc/jquery.js']['data'] = $custom_path;
-    $javascript['jquery']['type'] = url_is_external($custom_path) ? 'external' : 'file';
+    $javascript['jquery']['js']['misc/jquery.js']['type'] = url_is_external($custom_path) ? 'external' : 'file';
     $version = variable_get('jquery_update_custom_version_jquery', FALSE);
     if (!empty($version)) {
       $javascript['jquery']['version'] = $version;
@@ -772,9 +772,7 @@ function jquery_update_jquery_cookie_replace(&$libraries, $path, $min) {
   }
   else {
     $libraries['cookie']['js']['misc/jquery.cookie.js']['data'] = $custom_path;
-    if (strpos($custom_path, '//') !== FALSE) {
-      $libraries['cookie']['type'] = 'external';
-    }
+    $libraries['cookie']['js']['misc/jquery.cookie.js']['type'] = url_is_external($custom_path) ? 'external' : 'file';
     $version = variable_get('jquery_update_custom_version_jquery_cookie', FALSE);
     if ($version !== FALSE) {
       $libraries['cookie']['version'] = $version;
@@ -817,9 +815,7 @@ function jquery_update_jquery_form_replace(&$libraries, $path, $min, $jquery_ver
   }
   else {
     $libraries['jquery.form']['js']['misc/jquery.form.js']['data'] = $custom_path;
-    if (strpos($custom_path, '//') !== FALSE) {
-      $libraries['jquery.form']['type'] = 'external';
-    }
+    $libraries['jquery.form']['js']['misc/jquery.form.js']['type'] = url_is_external($custom_path) ? 'external' : 'file';
     $version = variable_get('jquery_update_custom_version_jquery_form', FALSE);
     if ($version !== FALSE) {
       $libraries['jquery.form']['version'] = $version;
