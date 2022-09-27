@@ -288,48 +288,12 @@ function jquery_update_jquery_replace(&$javascript, $cdn, $path, $min, $version)
   // Make sure to use the latest version in given branch.
   $trueversion = NULL;
   switch ($version) {
-    case '1.5':
-      $trueversion = '1.5.2';
-      break;
-
-    case '1.6':
-      $trueversion = '1.6.4';
-      break;
-
-    case '1.7':
-      $trueversion = '1.7.2';
-      break;
-
-    case '1.8':
-      $trueversion = '1.8.3';
-      break;
-
-    case '1.9':
-      $trueversion = '1.9.1';
-      break;
-
-    case '1.10':
-      $trueversion = '1.10.2';
-      break;
-
-    case '1.11':
-      $trueversion = '1.11.2';
-      break;
-
     case '1.12':
       $trueversion = '1.12.4';
       break;
 
-    case '2.1':
-      $trueversion = '2.1.4';
-      break;
-
     case '2.2':
       $trueversion = '2.2.4';
-      break;
-
-    case '3.1':
-      $trueversion = '3.1.1';
       break;
   }
   $javascript['jquery']['version'] = $trueversion;
