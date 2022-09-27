@@ -18,7 +18,7 @@ function jquery_update_settings_form() {
   );
 
   // Provide the form item to choose which jQuery version to use.
-  $default_version = variable_get('jquery_update_jquery_version', '1.10');
+  $default_version = variable_get('jquery_update_jquery_version', JQUERY_UPDATE_DEFAULT_JQUERY_VERSION);
   $custom_jquery = variable_get('jquery_update_custom_version_jquery', FALSE);
   if (!empty($custom_jquery)) {
     $default_version = $custom_jquery;
@@ -163,6 +163,9 @@ function jquery_update_settings_form() {
       '!url' => 'http://github.com/jquery/jquery-migrate/#readme',
     )),
   );
+  if (!empty($custom_jquery) && version_compare($custom_jquery, 3, '>=')) {
+    $form['jquery_migrate']['#description'] .= '<br /><strong>' . t('Note that the jQuery Update module only provides jQuery Migrate for jQuery versions before 3.x. A newer version of jQuery Migrate for the current version of jQuery can be configured via a Custom path.') . '</strong>';
+  }
 
   $form['jquery_migrate']['jquery_update_jquery_migrate_enable'] = array(
     '#type' => 'checkbox',

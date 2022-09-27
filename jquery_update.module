@@ -5,6 +5,8 @@
  * Updates Drupal to use the latest version of jQuery.
  */
 
+define('JQUERY_UPDATE_DEFAULT_JQUERY_VERSION', '1.12');
+
 /**
  * Implements hook_help().
  */
@@ -95,7 +97,7 @@ function jquery_update_library_alter(&$libraries, $module) {
 
   $path = drupal_get_path('module', 'jquery_update');
   $min = variable_get('jquery_update_compression_type', 'min') == 'none' ? '' : '.min';
-  $jquery_version = variable_get('jquery_update_jquery_version', '1.10');
+  $jquery_version = variable_get('jquery_update_jquery_version', JQUERY_UPDATE_DEFAULT_JQUERY_VERSION);
 
   // Make sure we inject either the minified or uncompressed version as desired.
   $cdn = variable_get('jquery_update_jquery_cdn', 'none');
@@ -206,13 +208,10 @@ function jquery_update_get_versions() {
   if (!isset($drupal_static_fast)) {
     $drupal_static_fast['versions'] = &drupal_static(__FUNCTION__, drupal_map_assoc(array(
       // 1.x.
-      '1.5', '1.6', '1.7', '1.8', '1.9', '1.10', '1.11', '1.12',
+      '1.12',
 
       // 2.x.
-      '2.1', '2.2',
-
-      // 3.x.
-      '3.1',
+      '2.2',
     )));
   }
   return $drupal_static_fast['versions'];
@@ -231,7 +230,7 @@ function jquery_update_get_versions() {
 function jquery_update_get_version_options($empty = TRUE) {
   $options = array_merge(array(
     '' => t('Site default (!version)', array(
-      '!version' => variable_get('jquery_update_jquery_version', '1.10'),
+      '!version' => variable_get('jquery_update_jquery_version', JQUERY_UPDATE_DEFAULT_JQUERY_VERSION),
     )),
     'default' => t('1.4 (Drupal core)'),
   ), jquery_update_get_supported_version_options());
@@ -417,8 +416,13 @@ function jquery_update_jquery_migrate_replace(&$libraries, $path, $min, $version
     return;
   }
 
+  $custom_path = variable_get('jquery_update_custom_path_migrate', FALSE);
   if (version_compare($version, '3.0', '>=')) {
     $migrate_version = '3';
+    if (empty($custom_path)) {
+      // jQuery 3.x and Migrate 3.x are only supported via a custom path.
+      return;
+    }
   }
   else {
     $migrate_version = '1';
@@ -457,7 +461,6 @@ function jquery_update_jquery_migrate_replace(&$libraries, $path, $min, $version
   );
 
   // Check for CDN support.
-  $custom_path = variable_get('jquery_update_custom_path_migrate', FALSE);
   if (empty($custom_path)) {
     if (variable_get('jquery_update_jquery_migrate_cdn', 'none') === 'jquery') {
       $default_migrate_version = ($migrate_version === '3') ? '3.0.0' : '1.4.1';
@@ -479,9 +482,9 @@ function jquery_update_jquery_migrate_replace(&$libraries, $path, $min, $version
     if (strpos($custom_path, '//') !== FALSE) {
       $libraries['jquery.migrate']['js'][$file]['type'] = 'external';
     }
-    $version = variable_get('jquery_update_custom_version_jquery_migrate', FALSE);
-    if (!empty($version)) {
-      $libraries['jquery.migrate']['version'] = $version;
+    $custom_version = variable_get('jquery_update_custom_version_jquery_migrate', FALSE);
+    if (!empty($custom_version)) {
+      $libraries['jquery.migrate']['version'] = $custom_version;
     }
   }
 
@@ -803,14 +806,6 @@ function jquery_update_jquery_form_replace(&$libraries, $path, $min, $jquery_ver
       // spaces which would cause triggering button values to not match in PHP.
       // @see https://www.drupal.org/node/2860158
       '4.2.1' => '1.7',
-
-      // jQuery Form 3 indicates that it's compatible with jQuery >= 1.5. However,
-      // it has parsing issues when used with Drupal and jQuery 1.5.
-      // @see https://www.drupal.org/node/2604976
-      '3.51.0' => '1.6',
-
-      // Older versions.
-      '2.69' => '1.4',
     );
     foreach ($jquery_form_versions as $jquery_form_version => $compatibility) {
       if (version_compare($jquery_version, $compatibility, '>=')) {
