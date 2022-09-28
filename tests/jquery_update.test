@@ -168,7 +168,6 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
       'jquery_update_latest_version_jquery_form' => '4.3.0',
       'jquery_update_latest_version_jquery_migrate' => '3.4.0',
     );
-
     foreach ($info as $k => $v) {
       variable_set($k, $v);
     }
@@ -181,4 +180,80 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
     $this->assertFieldByXPath("//div[@id='edit-latest-version-jquery-migrate']/em", '3.4.0', 'Latest version of jquery-migrate displayed as 3.4.0');
   }
 
+  /**
+   * Tests available updates functionality.
+   */
+  public function testAvailableUpdates() {
+
+    // In order to view the Status report.
+    $this->full_admin = $this->drupalCreateUser(array('administer site configuration'));
+
+    $info = array(
+      'jquery_update_latest_version_jquery' => '3.6.1',
+      'jquery_update_latest_version_jqueryui' => '1.13.2',
+      'jquery_update_latest_version_jquery_cookie' => '1.4.1',
+      'jquery_update_latest_version_jquery_form' => '4.3.0',
+      'jquery_update_latest_version_jquery_migrate' => '3.4.0',
+    );
+    foreach ($info as $k => $v) {
+      variable_set($k, $v);
+    }
+
+    $form = array(
+      'jquery_update_custom_path_jquery' => "https://code.jquery.com/jquery-3.6.0.js",
+      'jquery_update_custom_version_jquery' => "3.6.0",
+      'jquery_update_custom_path_jqueryui' => "https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.1/jquery-ui.min.js",
+      'jquery_update_custom_version_jqueryui' => "1.13.1",
+      'jquery_update_custom_path_cookie' => "https://cdn.jsdelivr.net/gh/carhartl/jquery-cookie@1.4.1/jquery.cookie.js",
+      'jquery_update_custom_version_jquery_cookie' => "1.4.1",
+      'jquery_update_custom_path_form' => "https://cdn.jsdelivr.net/gh/jquery-form/form@4.2.1/dist/jquery.form.min.js",
+      'jquery_update_custom_version_jquery_form' => "4.2.1",
+      'jquery_update_custom_path_migrate' => "https://cdn.jsdelivr.net/npm/jquery-migrate@3.3.2/dist/jquery-migrate.min.js",
+      'jquery_update_custom_version_jquery_migrate' => "3.3.2",
+      'jquery_update_jquery_migrate_enable' => TRUE,
+    );
+    $this->drupalPost('/admin/config/development/jquery_update', $form, t('Save configuration'));
+
+    $this->drupalGet('/admin/config/development/jquery_update');
+
+    $updates = array(
+      'jquery' => 'An update (<em class="placeholder">3.6.1</em>) is available for the current custom version (<em class="placeholder">3.6.0</em>) of the <em class="placeholder">jquery</em> library.',
+      'jqueryui' => 'An update (<em class="placeholder">1.13.2</em>) is available for the current custom version (<em class="placeholder">1.13.1</em>) of the <em class="placeholder">jqueryui</em> library.',
+      'jquery.form' => 'An update (<em class="placeholder">4.3.0</em>) is available for the current custom version (<em class="placeholder">4.2.1</em>) of the <em class="placeholder">jquery.form</em> library.',
+      'jquery-migrate' => 'An update (<em class="placeholder">3.4.0</em>) is available for the current custom version (<em class="placeholder">3.3.2</em>) of the <em class="placeholder">jquery-migrate</em> library.',
+    );
+
+    foreach ($updates as $library => $update) {
+      // drupal_set_message warnings
+      $this->assertRaw('<li>' . $update . '</li>', format_string('Warning message showing update available for $%library', array('%library' => $library)));
+      // update messages in the form
+      $this->assertRaw('<strong>' . $update . '</strong>', format_string('Info showing update available for $%library', array('%library' => $library)));
+    }
+
+    $this->assertNoRaw('is available for the current custom version (<em class="placeholder">1.4.1</em>) of the <em class="placeholder">jquery-cookie</em> library.');
+
+    $this->drupalLogin($this->full_admin);
+    $this->drupalGet('/admin/reports/status');
+    $this->assertRaw('Updates are available for at least one library managed by jQuery Update', 'Available updates message shown on status report');
+    $this->assertRaw('<em class="placeholder">jquery, jqueryui, jquery-migrate, jquery.form</em>');
+    $this->assertRaw('<span class="element-invisible">Warning</span></div></td><td class="status-title">jQuery Update library updates available', 'Status report shows a warning for available updates');
+
+    // Turn off warnings, so we should only see info messages.
+    variable_set('jquery_update_warning_available_update', FALSE);
+
+    $this->drupalLogin($this->admin);
+    $this->drupalGet('/admin/config/development/jquery_update');
+    foreach ($updates as $library => $update) {
+      // drupal_set_message warnings
+      $this->assertNoRaw('<li>' . $update . '</li>', format_string('No warning message showing update available for $%library', array('%library' => $library)));
+      // update messages in the form
+      $this->assertRaw('<strong>' . $update . '</strong>', format_string('Info showing update available for $%library', array('%library' => $library)));
+    }
+
+    $this->drupalLogin($this->full_admin);
+    $this->drupalGet('/admin/reports/status');
+    $this->assertRaw('Updates are available for at least one library managed by jQuery Update', 'Available updates message shown on status report');
+    $this->assertRaw('<em class="placeholder">jquery, jqueryui, jquery-migrate, jquery.form</em>');
+    $this->assertNoRaw('<span class="element-invisible">Warning</span></div></td><td class="status-title">jQuery Update library updates available', 'Status report shows a warning for available updates');
+  }
 }

@@ -401,6 +401,7 @@ function jquery_update_add_latest_version_info(&$form) {
     '#markup' => '<a href="' . $refresh_url . '">' . t('Refresh version info manually') . '</a>',
   );
 
+  $updates_available = _jquery_update_check_available_updates();
   $libraries = array(
     'jquery',
     'jqueryui',
@@ -415,6 +416,20 @@ function jquery_update_add_latest_version_info(&$form) {
       '#title' => t('Library: %library', array('%library' => $library)),
       '#markup' => t('Latest version: %version', array('%version' => $version)),
     );
+    if (in_array($library, $updates_available)) {
+      $custom_version = variable_get('jquery_update_custom_version_' . _jquery_update_clean_library_name($library), 'error');
+      $message = t('An update (%update) is available for the current custom version (%current) of the %library library.',
+        array(
+          '%update' => $version,
+          '%current' => $custom_version,
+          '%library' => $library,
+        )
+      );
+      $form['jquery_latest_versions']['latest_version_' . $library]['#description'] = '<strong>' . $message . '</strong>';
+      if (variable_get('jquery_update_warning_available_update', TRUE)) {
+        drupal_set_message($message, 'warning');
+      }
+    }
   }
 
   $form['jquery_latest_versions']['jquery_update_check_latest_versions'] = array(
@@ -424,6 +439,12 @@ function jquery_update_add_latest_version_info(&$form) {
     '#description' => t('If enabled, jQuery Update checks %cdnjs for latest version info no more than once a day via cron.', array(
       '%cdnjs' => 'api.cdnjs.com',
     )),
+  );
+  $form['jquery_latest_versions']['jquery_update_warning_available_update'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Warn about available updates?'),
+    '#default_value' => variable_get('jquery_update_warning_available_update', TRUE),
+    '#description' => t("If enabled, jQuery Update will warn about available updates via messages in its admin UI and the main Status report.")
   );
 }
 

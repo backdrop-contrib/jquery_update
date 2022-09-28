@@ -849,3 +849,41 @@ function _jquery_update_clean_library_name($library) {
   $search = array('.', '-');
   return str_replace($search, '_', $library);
 }
+
+/**
+ * Check any custom versions against latest version info.
+ *
+ * @return
+ *   An array of libraries for which updates are available (empty array if none)
+ */
+function _jquery_update_check_available_updates() {
+  $results = array();
+  // Nothing to do if checking of latest versions is not enabled.
+  if (!variable_get('jquery_update_check_latest_versions', TRUE)) {
+    return $results;
+  }
+  $libraries = array(
+    'jquery',
+    'jqueryui',
+    'jquery-migrate',
+    'jquery.form',
+    'jquery-cookie',
+  );
+  foreach ($libraries as $library) {
+    $results[$library] = _jquery_update_check_available_update($library);
+  }
+  return array_keys(array_filter($results));
+}
+
+/**
+ * Check a specific library for available updates.
+ */
+function _jquery_update_check_available_update($library) {
+  $library_variable_name = _jquery_update_clean_library_name($library);
+  $custom_version = variable_get('jquery_update_custom_version_' . $library_variable_name, FALSE);
+  $latest_version = variable_get('jquery_update_latest_version_' . $library_variable_name, FALSE);
+  if (!$custom_version || !$latest_version) {
+    return FALSE;
+  }
+  return version_compare($custom_version, $latest_version, '<');
+}
