@@ -114,6 +114,29 @@ function jquery_update_uninstall() {
   variable_del('jquery_update_compression_type');
   variable_del('jquery_update_jquery_version');
   variable_del('jquery_update_jquery_cdn');
+  variable_del('jquery_update_custom_version_jquery');
+  variable_del('jquery_update_jquery_migrate_enable');
+  variable_del('jquery_update_jquery_migrate_cdn');
+  variable_del('jquery_update_jquery_migrate_warnings');
+  variable_del('jquery_update_jquery_migrate_trace');
+  variable_del('jquery_update_custom_path_jquery');
+  variable_del('jquery_update_custom_version_jquery');
+  variable_del('jquery_update_custom_path_jqueryui');
+  variable_del('jquery_update_custom_version_jqueryui');
+  variable_del('jquery_update_custom_path_cookie');
+  variable_del('jquery_update_custom_version_jquery_cookie');
+  variable_del('jquery_update_custom_path_form');
+  variable_del('jquery_update_custom_version_jquery_form');
+  variable_del('jquery_update_custom_path_migrate');
+  variable_del('jquery_update_custom_version_jquery_migrate');
+  variable_del('jquery_update_check_latest_versions');
+  variable_del('jquery_update_latest_versions_checked');
+  variable_del('jquery_update_latest_version_jquery');
+  variable_del('jquery_update_latest_version_jqueryui');
+  variable_del('jquery_update_latest_version_jquery_cookie');
+  variable_del('jquery_update_latest_version_jquery_form');
+  variable_del('jquery_update_latest_version_jquery_migrate');
+  variable_del('jquery_update_warning_available_update');
 }
 
 /**
