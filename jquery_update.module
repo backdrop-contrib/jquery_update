@@ -161,6 +161,13 @@ function jquery_update_menu() {
     'access arguments' => array('administer jquery update'),
     'file' => 'jquery_update.admin.inc',
   );
+  $items['admin/config/development/jquery_update/refresh-version-info'] = array(
+    'title' => 'Refresh jQuery Update latest version info',
+    'description' => "Update jQuery Update's info about the latest versions of its jQuery libraries.",
+    'page callback' => 'jquery_update_refresh_version_info',
+    'access arguments' => array('administer jquery update'),
+    'file' => 'jquery_update.admin.inc',
+  );
 
   return $items;
 }
@@ -792,7 +799,8 @@ function jquery_update_jquery_form_replace(&$libraries, $path, $min, $jquery_ver
  */
 function jquery_update_latest_version($library = 'jquery', $refresh = FALSE) {
   $check_enabled = variable_get('jquery_update_check_latest_versions', TRUE);
-  $version = variable_get('jquery_update_latest_version_' . $library, FALSE);
+  $library_variable_name = _jquery_update_clean_library_name($library);
+  $version = variable_get('jquery_update_latest_version_' . $library_variable_name, FALSE);
   if ($check_enabled && ($refresh || empty($version))) {
     $r = drupal_http_request('https://api.cdnjs.com/libraries/' . $library . '?fields=version');
     if ($r->code == 200) {
@@ -800,7 +808,7 @@ function jquery_update_latest_version($library = 'jquery', $refresh = FALSE) {
       $version = json_decode($r->data)->version;
       if ($version != $old_version) {
         watchdog('jquery_update', 'Updated latest %library version to %version', array('%library' => $library, '%version' => $version));
-        variable_set('jquery_update_latest_version_' . $library, $version);
+        variable_set('jquery_update_latest_version_' . $library_variable_name, $version);
       }
     }
   }
@@ -811,12 +819,33 @@ function jquery_update_latest_version($library = 'jquery', $refresh = FALSE) {
  * Implements hook_cron().
  */
 function jquery_update_cron() {
+  _jquery_update_refresh_version_info();
+}
+
+/**
+ * Refresh latest version info via cron or manually.
+ */
+function _jquery_update_refresh_version_info($refresh = FALSE) {
   $last_update = variable_get('jquery_update_latest_versions_checked', FALSE);
-  if (!$last_update || (REQUEST_TIME - $last_update) >= 24 * 60 * 60) {
-    $jquery = jquery_update_latest_version('jquery', TRUE);
-    $jqueryui = jquery_update_latest_version('jqueryui', TRUE);
-    if (!empty($jquery) && !empty($jqueryui)) {
-      variable_set('jquery_update_latest_versions_checked', REQUEST_TIME);
+  if ($refresh || !$last_update || (REQUEST_TIME - $last_update) >= 24 * 60 * 60) {
+    $libraries = array(
+      'jquery',
+      'jqueryui',
+      'jquery-migrate',
+      'jquery.form',
+      'jquery-cookie',
+    );
+    foreach ($libraries as $library) {
+      $version = jquery_update_latest_version($library, TRUE);
     }
+    variable_set('jquery_update_latest_versions_checked', REQUEST_TIME);
   }
+}
+
+/**
+ * Helper to clean up library names for use as Drupal variables.
+ */
+function _jquery_update_clean_library_name($library) {
+  $search = array('.', '-');
+  return str_replace($search, '_', $library);
 }

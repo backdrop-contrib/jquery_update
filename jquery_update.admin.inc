@@ -302,6 +302,8 @@ function jquery_update_settings_form() {
     '#description' => t('Example: %version', array('%version' => '3.3.2')),
   );
 
+  jquery_update_add_latest_version_info($form);
+
   return system_settings_form($form);
 }
 
@@ -367,4 +369,76 @@ function jquery_update_settings_form_submit($form, &$form_state) {
       variable_del($variable);
     }
   }
+}
+
+function jquery_update_add_latest_version_info(&$form) {
+
+  $form['jquery_latest_versions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Latest versions'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#tree' => FALSE,
+    '#group' => 'jquery_update',
+    '#description' => t('Information about the latest available versions of the jQuery libraries the jQuery Update module integrates.'),
+  );
+
+  $last_update = variable_get('jquery_update_latest_versions_checked', FALSE);
+  if ($last_update) {
+    $message = t('Version info last updated %datetime', array('%datetime' => format_date($last_update)));
+    $form['jquery_latest_versions']['#description'] .= '<br />' . $message;
+  }
+
+  $refresh_url = url('admin/config/development/jquery_update/refresh-version-info',
+    array(
+      'query' => array(
+        'token' => drupal_get_token('refresh-version-info')
+      )
+    )
+  );
+  $form['jquery_latest_versions']['refresh_version_info'] = array(
+    '#type' => 'item',
+    '#markup' => '<a href="' . $refresh_url . '">' . t('Refresh version info manually') . '</a>',
+  );
+
+  $libraries = array(
+    'jquery',
+    'jqueryui',
+    'jquery-migrate',
+    'jquery.form',
+    'jquery-cookie',
+  );
+  foreach ($libraries as $library) {
+    $version = jquery_update_latest_version($library);
+    $form['jquery_latest_versions']['latest_version_' . $library] = array(
+      '#type' => 'item',
+      '#title' => t('Library: %library', array('%library' => $library)),
+      '#markup' => t('Latest version: %version', array('%version' => $version)),
+    );
+  }
+
+  $form['jquery_latest_versions']['jquery_update_check_latest_versions'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Check latest version info?'),
+    '#default_value' => variable_get('jquery_update_check_latest_versions', TRUE),
+    '#description' => t('If enabled, jQuery Update checks %cdnjs for latest version info no more than once a day via cron.', array(
+      '%cdnjs' => 'api.cdnjs.com',
+    )),
+  );
+}
+
+/**
+ * Menu callback to refresh jQuery libraries latest version info.
+ *
+ * @see system_run_cron()
+ */
+function jquery_update_refresh_version_info() {
+  if (!isset($_GET['token']) || !drupal_valid_token($_GET['token'], 'refresh-version-info')) {
+    return MENU_ACCESS_DENIED;
+  }
+
+  _jquery_update_refresh_version_info(TRUE);
+  drupal_set_message(t('Attempted to refresh latest version info.'));
+
+  drupal_goto('admin/config/development/jquery_update', array('fragment' => 'edit-jquery-latest-versions'));
 }

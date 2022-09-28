@@ -157,4 +157,28 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
     }
   }
 
+  /**
+   * Tests that latest version info is displayed in the admin UI.
+   */
+  public function testLatestVersionAdminUi() {
+    $info = array(
+      'jquery_update_latest_version_jquery' => '3.6.1',
+      'jquery_update_latest_version_jqueryui' => '1.13.2',
+      'jquery_update_latest_version_jquery_cookie' => '1.4.1',
+      'jquery_update_latest_version_jquery_form' => '4.3.0',
+      'jquery_update_latest_version_jquery_migrate' => '3.4.0',
+    );
+
+    foreach ($info as $k => $v) {
+      variable_set($k, $v);
+    }
+
+    $this->drupalGet('admin/config/development/jquery_update');
+    $this->assertFieldByXPath("//div[@id='edit-latest-version-jquery']/em", '3.6.1', 'Latest version of jquery displayed as 3.6.1');
+    $this->assertFieldByXPath("//div[@id='edit-latest-version-jqueryui']/em", '1.13.2', 'Latest version of jqueryui displayed as 1.13.2');
+    $this->assertFieldByXPath("//div[@id='edit-latest-version-jquery-cookie']/em", '1.4.1', 'Latest version of jquery-cookie displayed as 1.4.1');
+    $this->assertFieldByXPath("//div[@id='edit-latest-version-jqueryform']/em", '4.3.0', 'Latest version of jquery.form displayed as 4.3.0');
+    $this->assertFieldByXPath("//div[@id='edit-latest-version-jquery-migrate']/em", '3.4.0', 'Latest version of jquery-migrate displayed as 3.4.0');
+  }
+
 }
