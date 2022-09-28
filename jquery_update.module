@@ -194,14 +194,6 @@ function jquery_update_form_system_theme_settings_alter(&$form, $form_state) {
   );
 }
 
-function jquery_update_get_supported_versions() {
-  return array(
-    '1.4',
-    '1.12',
-    '2.2',
-  );
-}
-
 /**
  * Retrieve the jQuery versions available by this module.
  *
@@ -248,10 +240,9 @@ function jquery_update_get_version_options($empty = TRUE) {
 }
 
 function jquery_update_get_supported_version_options() {
-  $jquery_supported_versions = jquery_update_get_supported_versions();
   $options = array();
   foreach (jquery_update_get_versions() as $version) {
-    $options[$version] = $version . ' ' . (in_array($version, $jquery_supported_versions) ? t('(Supported)') : t('(Unsupported)'));
+    $options[$version] = $version;
   }
   $custom_jquery = variable_get('jquery_update_custom_version_jquery', FALSE);
   if (!empty($custom_jquery)) {
@@ -715,6 +706,7 @@ function jquery_update_permission() {
   return array(
     'administer jquery update' => array(
       'title' => t('Administer jQuery Update'),
+      'restricted access' => TRUE,
       'description' => t('Perform administration tasks for jQuery Update.'),
     ),
   );
