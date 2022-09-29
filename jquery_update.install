@@ -179,3 +179,11 @@ function jquery_update_update_7001() {
   // Remove the admin version variable.
   variable_del('jquery_update_jquery_admin_version');
 }
+
+/**
+ * Convert all jQuery version settings to be one of the two supported versions.
+ */
+function jquery_update_update_7002() {
+  module_load_include('module', 'jquery_update');
+  _jquery_update_convert_settings_to_supported_versions();
+}

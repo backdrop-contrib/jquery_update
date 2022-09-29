@@ -256,4 +256,31 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
     $this->assertRaw('<em class="placeholder">jquery, jqueryui, jquery-migrate, jquery.form</em>');
     $this->assertNoRaw('<span class="element-invisible">Warning</span></div></td><td class="status-title">jQuery Update library updates available', 'Status report shows a warning for available updates');
   }
+
+  /**
+   * Tests that obsolete jQuery versions (removed by 7.x-4.x) set in the
+   * jquery_update_jquery_version variable are replaced by a fallback.
+   */
+  public function testObsoleteJqueryVersion() {
+    variable_set('jquery_update_jquery_version', '1.10');
+
+    $libraries = array();
+    $path = drupal_get_path('module', 'jquery_update');
+    $min = variable_get('jquery_update_compression_type', 'min') == 'none' ? '' : '.min';
+    $jquery_version = variable_get('jquery_update_jquery_version', JQUERY_UPDATE_DEFAULT_JQUERY_VERSION);
+    jquery_update_jquery_replace($libraries, 'none', $path, $min, $jquery_version);
+
+    $supported_versions = jquery_update_get_versions();
+    foreach ($supported_versions as $key => $supported_version) {
+      $supported_versions[$key] = $path . '/replace/jquery/' . $supported_version . '/jquery' . $min . '.js';
+    }
+    $this->assertTrue(in_array($libraries['jquery']['js']['misc/jquery.js']['data'], $supported_versions), 'Obsolete jQuery version was replaced by the default one.');
+
+    $js = json_decode($this->drupalGet('/jquery-update-test/drupal-add-js'), TRUE);
+    $this->assertTrue(array_key_exists($libraries['jquery']['js']['misc/jquery.js']['data'], $js), 'Obsolete jQuery version was rendered correctly.');
+    $url = file_create_url($libraries['jquery']['js']['misc/jquery.js']['data']);
+    $this->drupalHead($url);
+    $this->assertResponse(200, 'jquery.js file correctly loaded.');
+  }
+
 }

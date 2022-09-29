@@ -283,6 +283,17 @@ function jquery_update_jquery_replace(&$javascript, $cdn, $path, $min, $version)
     return;
   }
 
+  // In case we've been passed an obsolete jQuery version ensure that the
+  // versions stored in settings are all supported, and map the current request
+  // to a supported version.
+  $supported_versions = jquery_update_get_versions();
+  if (!in_array($version, $supported_versions)) {
+    _jquery_update_convert_settings_to_supported_versions();
+    // The global default and any theme-specific versions should have been
+    // updated but we still need to replace the version passed to this function.
+    $version = _jquery_update_map_to_supported_version($version);
+  }
+
   // Make sure to use the latest version in given branch.
   $trueversion = NULL;
   switch ($version) {
@@ -878,4 +889,57 @@ function _jquery_update_check_available_update($library) {
     return FALSE;
   }
   return version_compare($custom_version, $latest_version, '<');
+}
+
+/**
+ * Helper to map existing jQuery versions to one of the supported versions.
+ *
+ * This is for the upgrade path from previous releases of jQuery Update and is
+ * not intended for use with custom versions.
+ *
+ * @param string $version
+ *   The MAJOR.MINOR jQuery version to map.
+ */
+function _jquery_update_map_to_supported_version($version) {
+  if ($version == 'default') {
+    return $version;
+  }
+  if (version_compare($version, '2', '<')) {
+    return '1.12';
+  }
+  if (version_compare($version, '1', '>')) {
+    return '2.2';
+  }
+  return FALSE;
+}
+
+/**
+ * Helper to convert all jQuery version settings to a supported version.
+ */
+function _jquery_update_convert_settings_to_supported_versions() {
+  $jquery_version = variable_get('jquery_update_jquery_version', JQUERY_UPDATE_DEFAULT_JQUERY_VERSION);
+  $mapped_version = _jquery_update_map_to_supported_version($jquery_version);
+  if ($jquery_version != $mapped_version) {
+    variable_set('jquery_update_jquery_version', $mapped_version);
+    watchdog('jquery_update', 'jquery_update_jquery_version updated from @before to @after',
+      array('@before' => $jquery_version, '@after' => $mapped_version), WATCHDOG_WARNING);
+  }
+  $themes = list_themes();
+  foreach ($themes as $theme_key => $theme) {
+    $theme_settings = variable_get('theme_' . $theme_key . '_settings', array());
+    if (in_array('jquery_update_jquery_version', array_keys($theme_settings))) {
+      $theme_jquery_version = $theme_settings['jquery_update_jquery_version'];
+      $mapped_theme_jquery_version = _jquery_update_map_to_supported_version($theme_jquery_version);
+      if ($theme_jquery_version != $mapped_theme_jquery_version) {
+        $theme_settings['jquery_update_jquery_version'] = $mapped_theme_jquery_version;
+        variable_set('theme_' . $theme_key . '_settings', $theme_settings);
+        watchdog('jquery_update', 'theme settings for @theme: jquery_update_jquery_version updated from @before to @after',
+          array(
+            '@theme' => $theme_key,
+            '@before' => $theme_jquery_version,
+            '@after' => $mapped_theme_jquery_version
+          ), WATCHDOG_WARNING);
+      }
+    }
+  }
 }
