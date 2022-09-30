@@ -5,6 +5,15 @@
  * Provides the administration settings for jQuery Update.
  */
 
+// These are just for the examples in the admin UI, there's no urgent need to
+// keep them up-to-date, especially as they'll be replaced by the latest
+// versions if that info is available.
+define('JQUERY_UPDATE_EXAMPLE_JQUERY_VERSION', '3.6.1');
+define('JQUERY_UPDATE_EXAMPLE_JQUERYUI_VERSION', '1.13.2');
+define('JQUERY_UPDATE_EXAMPLE_JQUERY_MIGRATE_VERSION', '3.4.0');
+define('JQUERY_UPDATE_EXAMPLE_JQUERY_COOKIE_VERSION', '4.3.0');
+define('JQUERY_UPDATE_EXAMPLE_JQUERY_FORM_VERSION', '1.4.1');
+
 /**
  * Admin settings menu callback.
  *
@@ -221,12 +230,15 @@ function jquery_update_settings_form() {
     '#group' => 'jquery_update',
     '#description' => t('Custom paths for jQuery libraries (e.g. CDN URLs or paths to local files).'),
   );
+
+  $latest_version = jquery_update_latest_version('jquery');
+  $example_version = $latest_version ? $latest_version : JQUERY_UPDATE_EXAMPLE_JQUERY_VERSION;
   $form['jquery_custom']['jquery_update_custom_path_jquery'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery path'),
     '#default_value' => variable_get('jquery_update_custom_path_jquery', ''),
     '#description' => t('Example: %url or %path', array(
-        '%url' => 'https://code.jquery.com/jquery-3.6.0.js',
+        '%url' => 'https://code.jquery.com/jquery-' . $example_version . '.js',
         '%path' => '/sites/default/files/jquery_update/jquery.js'
       )
     ),
@@ -235,14 +247,17 @@ function jquery_update_settings_form() {
     '#type' => 'textfield',
     '#title' => t('Custom jQuery version'),
     '#default_value' => variable_get('jquery_update_custom_version_jquery', ''),
-    '#description' => t('Example: %version', array('%version' => '3.6.0')),
+    '#description' => t('Example: %version', array('%version' => $example_version)),
   );
+
+  $latest_version = jquery_update_latest_version('jqueryui');
+  $example_version = $latest_version ? $latest_version : JQUERY_UPDATE_EXAMPLE_JQUERYUI_VERSION;
   $form['jquery_custom']['jquery_update_custom_path_jqueryui'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery UI path'),
     '#default_value' => variable_get('jquery_update_custom_path_jqueryui', ''),
     '#description' => t('Example: %url or %path', array(
-        '%url' => 'https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js',
+        '%url' => 'https://cdnjs.cloudflare.com/ajax/libs/jqueryui/' . $example_version . '/jquery-ui.min.js',
         '%path' => '/sites/default/files/jquery_update/jquery-ui.min.js'
       )
     ),
@@ -251,14 +266,36 @@ function jquery_update_settings_form() {
     '#type' => 'textfield',
     '#title' => t('Custom jQuery UI version'),
     '#default_value' => variable_get('jquery_update_custom_version_jqueryui', ''),
-    '#description' => t('Example: %version', array('%version' => '1.13.0')),
+    '#description' => t('Example: %version', array('%version' => $example_version)),
   );
+
+  $latest_version = jquery_update_latest_version('jquery-migrate');
+  $example_version = $latest_version ? $latest_version : JQUERY_UPDATE_EXAMPLE_JQUERY_MIGRATE_VERSION;
+  $form['jquery_custom']['jquery_update_custom_path_migrate'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Custom jQuery Migrate path'),
+    '#default_value' => variable_get('jquery_update_custom_path_migrate', ''),
+    '#description' => t('Example: %url or %path', array(
+      '%url' => 'https://cdn.jsdelivr.net/npm/jquery-migrate@' . $example_version . '/dist/jquery-migrate.min.js',
+      '%path' => '/sites/default/files/jquery_update/jquery-migrate.js'
+    )
+  ),
+  );
+  $form['jquery_custom']['jquery_update_custom_version_jquery_migrate'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Custom jQuery Migrate version'),
+    '#default_value' => variable_get('jquery_update_custom_version_jquery_migrate', ''),
+    '#description' => t('Example: %version', array('%version' => $example_version)),
+  );
+
+  $latest_version = jquery_update_latest_version('jquery-cookie');
+  $example_version = $latest_version ? $latest_version : JQUERY_UPDATE_EXAMPLE_JQUERY_COOKIE_VERSION;
   $form['jquery_custom']['jquery_update_custom_path_cookie'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery Cookie path'),
     '#default_value' => variable_get('jquery_update_custom_path_cookie', ''),
     '#description' => t('Example: %url or %path', array(
-        '%url' => 'https://cdn.jsdelivr.net/gh/carhartl/jquery-cookie@1.4.1/jquery.cookie.js',
+        '%url' => 'https://cdn.jsdelivr.net/gh/carhartl/jquery-cookie@' . $example_version . '/jquery.cookie.js',
         '%path' => '/sites/default/files/jquery_update/jquery.cookie.js'
       )
     ),
@@ -267,14 +304,17 @@ function jquery_update_settings_form() {
     '#type' => 'textfield',
     '#title' => t('Custom jQuery Cookie version'),
     '#default_value' => variable_get('jquery_update_custom_version_jquery_cookie', ''),
-    '#description' => t('Example: %version', array('%version' => '1.4.0')),
+    '#description' => t('Example: %version', array('%version' => $example_version)),
   );
+
+  $latest_version = jquery_update_latest_version('jquery.form');
+  $example_version = $latest_version ? $latest_version : JQUERY_UPDATE_EXAMPLE_JQUERY_FORM_VERSION;
   $form['jquery_custom']['jquery_update_custom_path_form'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery Form path'),
     '#default_value' => variable_get('jquery_update_custom_path_form', ''),
     '#description' => t('Example: %url or %path', array(
-        '%url' => 'https://cdn.jsdelivr.net/gh/jquery-form/form@4.2.1/dist/jquery.form.min.js',
+        '%url' => 'https://cdn.jsdelivr.net/gh/jquery-form/form@' . $example_version . '/dist/jquery.form.min.js',
         '%path' => '/sites/default/files/jquery_update/jquery.form.js'
       )
     ),
@@ -283,23 +323,7 @@ function jquery_update_settings_form() {
     '#type' => 'textfield',
     '#title' => t('Custom jQuery Form version'),
     '#default_value' => variable_get('jquery_update_custom_version_jquery_form', ''),
-    '#description' => t('Example: %version', array('%version' => '4.2.1')),
-  );
-  $form['jquery_custom']['jquery_update_custom_path_migrate'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Custom jQuery Migrate path'),
-    '#default_value' => variable_get('jquery_update_custom_path_migrate', ''),
-    '#description' => t('Example: %url or %path', array(
-        '%url' => 'https://cdn.jsdelivr.net/npm/jquery-migrate@3.3.2/dist/jquery-migrate.min.js',
-        '%path' => '/sites/default/files/jquery_update/jquery-migrate.js'
-      )
-    ),
-  );
-  $form['jquery_custom']['jquery_update_custom_version_jquery_migrate'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Custom jQuery Migrate version'),
-    '#default_value' => variable_get('jquery_update_custom_version_jquery_migrate', ''),
-    '#description' => t('Example: %version', array('%version' => '3.3.2')),
+    '#description' => t('Example: %version', array('%version' => $example_version)),
   );
 
   jquery_update_add_latest_version_info($form);
@@ -427,7 +451,7 @@ function jquery_update_add_latest_version_info(&$form) {
       );
       $form['jquery_latest_versions']['latest_version_' . $library]['#description'] = '<strong>' . $message . '</strong>';
       if (variable_get('jquery_update_warning_available_update', TRUE)) {
-        drupal_set_message($message, 'warning');
+        drupal_set_message($message, 'warning', FALSE);
       }
     }
   }

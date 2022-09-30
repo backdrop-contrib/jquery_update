@@ -799,6 +799,9 @@ function jquery_update_jquery_form_replace(&$libraries, $path, $min, $jquery_ver
 
 /**
  * Query and store latest versions of jQuery libraries.
+ *
+ * @return
+ *   A version string e.g. "3.6.1" or FALSE
  */
 function jquery_update_latest_version($library = 'jquery', $refresh = FALSE) {
   $check_enabled = variable_get('jquery_update_check_latest_versions', TRUE);
