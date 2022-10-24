@@ -34,10 +34,22 @@ function jquery_update_requirements($phase) {
     if (!is_null($default_theme)) {
       $backup_theme_key = $GLOBALS['theme_key'];
       $GLOBALS['theme_key'] = $default_theme;
-      $libraries = array($jquery, $ui);
-      jquery_update_library_alter($libraries, 'system');
-      $versions['theme_default']['jquery'] = $libraries['jquery']['version'];
-      $versions['theme_default']['ui'] = $libraries['ui']['version'];
+      try {
+        $libraries = array($jquery, $ui);
+        jquery_update_library_alter($libraries, 'system');
+        $versions['theme_default']['jquery'] = $libraries['jquery']['version'];
+        $versions['theme_default']['ui'] = $libraries['ui']['version'];
+      }
+      catch (\Exception $e) {
+        watchdog_exception('jquery_update', $e);
+        $requirements['jquery_update_error'] = array(
+          'title' => t('An error occurred when checking jQuery versions'),
+          'severity' => REQUIREMENT_ERROR,
+          'description' => t('See the logs for more information.')
+        );
+        $GLOBALS['theme_key'] = $backup_theme_key;
+        return $requirements;
+      }
       $GLOBALS['theme_key'] = $backup_theme_key;
     }
 
