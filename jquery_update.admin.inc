@@ -41,7 +41,7 @@ function jquery_update_settings_form() {
     '#description' => t('Select which version of jQuery to use on the site.'),
   );
 
-  // Theme-specific override version
+  // Theme-specific override version.
   $themes = list_themes();
   $theme_default = variable_get('theme_default', FALSE);
   $admin_theme = variable_get('admin_theme', FALSE);
@@ -115,7 +115,6 @@ function jquery_update_settings_form() {
     '#rows' => $rows,
   );
 
-
   $form['performance'] = array(
     '#type' => 'fieldset',
     '#title' => t('Performance'),
@@ -124,7 +123,7 @@ function jquery_update_settings_form() {
     '#tree' => FALSE,
     '#weight' => -1,
     '#group' => 'jquery_update',
-    '#description' => t('Modify how jQuery is loaded to increase download and render performance.')
+    '#description' => t('Modify how jQuery is loaded to increase download and render performance.'),
   );
 
   $form['performance']['jquery_update_compression_type'] = array(
@@ -134,7 +133,7 @@ function jquery_update_settings_form() {
       'min' => t('Production (minified)'),
       'none' => t('Development (uncompressed)'),
     ),
-    // Do not show this field if jQuery version is default
+    // Do not show this field if jQuery version is default.
     '#states' => array(
       'invisible' => array(
         ':input[name=jquery_update_jquery_version]' => array('value' => "default"),
@@ -151,7 +150,7 @@ function jquery_update_settings_form() {
       'microsoft' => t('Microsoft'),
       'jquery' => t('jQuery'),
     ),
-    // Do not show this field if jQuery version is default
+    // Do not show this field if jQuery version is default.
     '#states' => array(
       'invisible' => array(
         ':input[name=jquery_update_jquery_version]' => array('value' => "default"),
@@ -238,10 +237,9 @@ function jquery_update_settings_form() {
     '#title' => t('Custom jQuery path'),
     '#default_value' => variable_get('jquery_update_custom_path_jquery', ''),
     '#description' => t('Example: %url or %path', array(
-        '%url' => 'https://code.jquery.com/jquery-' . $example_version . '.js',
-        '%path' => '/sites/default/files/jquery_update/jquery.js'
-      )
-    ),
+      '%url' => 'https://code.jquery.com/jquery-' . $example_version . '.js',
+      '%path' => '/sites/default/files/jquery_update/jquery.js',
+    )),
   );
   $form['jquery_custom']['jquery_update_custom_version_jquery'] = array(
     '#type' => 'textfield',
@@ -257,10 +255,9 @@ function jquery_update_settings_form() {
     '#title' => t('Custom jQuery UI path'),
     '#default_value' => variable_get('jquery_update_custom_path_jqueryui', ''),
     '#description' => t('Example: %url or %path', array(
-        '%url' => 'https://cdnjs.cloudflare.com/ajax/libs/jqueryui/' . $example_version . '/jquery-ui.min.js',
-        '%path' => '/sites/default/files/jquery_update/jquery-ui.min.js'
-      )
-    ),
+      '%url' => 'https://cdnjs.cloudflare.com/ajax/libs/jqueryui/' . $example_version . '/jquery-ui.min.js',
+      '%path' => '/sites/default/files/jquery_update/jquery-ui.min.js',
+    )),
   );
   $form['jquery_custom']['jquery_update_custom_version_jqueryui'] = array(
     '#type' => 'textfield',
@@ -277,9 +274,8 @@ function jquery_update_settings_form() {
     '#default_value' => variable_get('jquery_update_custom_path_migrate', ''),
     '#description' => t('Example: %url or %path', array(
       '%url' => 'https://cdn.jsdelivr.net/npm/jquery-migrate@' . $example_version . '/dist/jquery-migrate.min.js',
-      '%path' => '/sites/default/files/jquery_update/jquery-migrate.js'
-    )
-  ),
+      '%path' => '/sites/default/files/jquery_update/jquery-migrate.js',
+    )),
   );
   $form['jquery_custom']['jquery_update_custom_version_jquery_migrate'] = array(
     '#type' => 'textfield',
@@ -295,10 +291,9 @@ function jquery_update_settings_form() {
     '#title' => t('Custom jQuery Cookie path'),
     '#default_value' => variable_get('jquery_update_custom_path_cookie', ''),
     '#description' => t('Example: %url or %path', array(
-        '%url' => 'https://cdn.jsdelivr.net/gh/carhartl/jquery-cookie@' . $example_version . '/jquery.cookie.js',
-        '%path' => '/sites/default/files/jquery_update/jquery.cookie.js'
-      )
-    ),
+      '%url' => 'https://cdn.jsdelivr.net/gh/carhartl/jquery-cookie@' . $example_version . '/jquery.cookie.js',
+      '%path' => '/sites/default/files/jquery_update/jquery.cookie.js',
+    )),
   );
   $form['jquery_custom']['jquery_update_custom_version_jquery_cookie'] = array(
     '#type' => 'textfield',
@@ -314,10 +309,9 @@ function jquery_update_settings_form() {
     '#title' => t('Custom jQuery Form path'),
     '#default_value' => variable_get('jquery_update_custom_path_form', ''),
     '#description' => t('Example: %url or %path', array(
-        '%url' => 'https://cdn.jsdelivr.net/gh/jquery-form/form@' . $example_version . '/dist/jquery.form.min.js',
-        '%path' => '/sites/default/files/jquery_update/jquery.form.js'
-      )
-    ),
+      '%url' => 'https://cdn.jsdelivr.net/gh/jquery-form/form@' . $example_version . '/dist/jquery.form.min.js',
+      '%path' => '/sites/default/files/jquery_update/jquery.form.js',
+    )),
   );
   $form['jquery_custom']['jquery_update_custom_version_jquery_form'] = array(
     '#type' => 'textfield',
@@ -335,7 +329,7 @@ function jquery_update_settings_form() {
  * Validate handler for settings form.
  */
 function jquery_update_settings_form_validate($form, &$form_state) {
-  // Handle empty custom paths / versions
+  // Handle empty custom paths / versions.
   if (!empty($form_state['values']['jquery_update_custom_path_jquery'])) {
     if (empty($form_state['values']['jquery_update_custom_version_jquery'])) {
       form_set_error('jquery_update_custom_version_jquery', 'Please provide a version for the custom jQuery path');
@@ -374,7 +368,7 @@ function jquery_update_form_jquery_update_settings_form_alter(&$form, &$form_sta
  * Submit handler for settings form.
  */
 function jquery_update_settings_form_submit($form, &$form_state) {
-  // Handle empty custom paths / versions
+  // Handle empty custom paths / versions.
   $variables = array(
     'jquery_update_custom_path_cookie',
     'jquery_update_custom_path_form',
@@ -395,6 +389,9 @@ function jquery_update_settings_form_submit($form, &$form_state) {
   }
 }
 
+/**
+ * The Latest versions fieldset.
+ */
 function jquery_update_add_latest_version_info(&$form) {
 
   $form['jquery_latest_versions'] = array(
@@ -416,8 +413,8 @@ function jquery_update_add_latest_version_info(&$form) {
   $refresh_url = url('admin/config/development/jquery_update/refresh-version-info',
     array(
       'query' => array(
-        'token' => drupal_get_token('refresh-version-info')
-      )
+        'token' => drupal_get_token('refresh-version-info'),
+      ),
     )
   );
   $form['jquery_latest_versions']['refresh_version_info'] = array(
@@ -468,7 +465,7 @@ function jquery_update_add_latest_version_info(&$form) {
     '#type' => 'checkbox',
     '#title' => t('Warn about available updates?'),
     '#default_value' => variable_get('jquery_update_warning_available_update', TRUE),
-    '#description' => t("If enabled, jQuery Update will warn about available updates via messages in its admin UI and the main Status report.")
+    '#description' => t("If enabled, jQuery Update will warn about available updates via messages in its admin UI and the main Status report."),
   );
 }
 

@@ -48,7 +48,6 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
 
     // n.b. version numbers are arbitrary in most cases here, so probably no
     // real need update them as new releases come out.
-
     $form = array(
       'jquery_update_custom_path_jquery' => "https://code.jquery.com/jquery-3.6.0.js",
       'jquery_update_custom_version_jquery' => "3.6.0",
@@ -224,9 +223,9 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
     );
 
     foreach ($updates as $library => $update) {
-      // drupal_set_message warnings
+      // drupal_set_message warnings.
       $this->assertRaw('<li>' . $update . '</li>', format_string('Warning message showing update available for $%library', array('%library' => $library)));
-      // update messages in the form
+      // Update messages in the form.
       $this->assertRaw('<strong>' . $update . '</strong>', format_string('Info showing update available for $%library', array('%library' => $library)));
     }
 
@@ -244,9 +243,9 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
     $this->drupalLogin($this->admin);
     $this->drupalGet('/admin/config/development/jquery_update');
     foreach ($updates as $library => $update) {
-      // drupal_set_message warnings
+      // drupal_set_message warnings.
       $this->assertNoRaw('<li>' . $update . '</li>', format_string('No warning message showing update available for $%library', array('%library' => $library)));
-      // update messages in the form
+      // Update messages in the form.
       $this->assertRaw('<strong>' . $update . '</strong>', format_string('Info showing update available for $%library', array('%library' => $library)));
     }
 
@@ -325,4 +324,5 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
     $this->assertRaw('Example: <em class="placeholder">5.6.7</em>', 'Updated example jquery.form custom version');
 
   }
+
 }
