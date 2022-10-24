@@ -272,7 +272,7 @@ function jquery_update_get_supported_version_options() {
  * @param string $version
  *   The jQuery version to be used.
  */
-function jquery_update_jquery_replace(&$javascript, $cdn, $path, $min, $version) {
+function jquery_update_jquery_replace(array &$javascript, $cdn, $path, $min, $version) {
 
   $custom_path = variable_get('jquery_update_custom_path_jquery', FALSE);
   if (!empty($custom_path)) {
@@ -363,7 +363,7 @@ function jquery_update_add_jquery_browser_fix(&$libraries, $jquery_version) {
  * @param string $version
  *   The jQuery version to be used.
  */
-function jquery_update_jquery_backup(&$javascript, $path, $min, $version) {
+function jquery_update_jquery_backup(array &$javascript, $path, $min, $version) {
   $javascript['jquery']['js'][] = array(
     'data' => 'window.jQuery || document.write("<script src=\'' . base_path() . $path . '/replace/jquery/' . $version . '/jquery' . $min . '.js\'>\x3C/script>")',
     'type' => 'inline',
@@ -385,7 +385,7 @@ function jquery_update_jquery_backup(&$javascript, $path, $min, $version) {
  * @param string $version
  *   The jQuery version to be used.
  */
-function jquery_update_jquery_migrate_replace(&$libraries, $path, $min, $version) {
+function jquery_update_jquery_migrate_replace(array &$libraries, $path, $min, $version) {
   // Immediately return if jQuery Migrate isn't enabled or jQuery version
   // isn't at least 1.9 or higher.
   if (!variable_get('jquery_update_jquery_migrate_enable', FALSE) || !version_compare($version, '1.9', '>=')) {
@@ -469,7 +469,7 @@ function jquery_update_jquery_migrate_replace(&$libraries, $path, $min, $version
 }
 
 /**
- * Add the local fallback in case the jQuery Migrate Plugin from the CDN is unavailable.
+ * Add local fallback in case the jQuery Migrate Plugin from CDN is unavailable.
  *
  * @param array $javascript
  *   The $libraries array as seen in hook_library_alter()
@@ -481,7 +481,7 @@ function jquery_update_jquery_migrate_replace(&$libraries, $path, $min, $version
  * @param string $migrate_version
  *   The jQuery Migrate version to be used.
  */
-function jquery_update_jquery_migrate_backup(&$javascript, $path, $min, $migrate_version) {
+function jquery_update_jquery_migrate_backup(array &$javascript, $path, $min, $migrate_version) {
   $javascript['jquery.migrate']['js'][] = array(
     'data' => 'window.jQuery && window.jQuery.migrateWarnings || document.write("<script src=\'' . base_path() . $path . '/replace/jquery-migrate/' . $migrate_version . '/jquery-migrate' . $min . '.js\'>\x3C/script>")',
     'type' => 'inline',
@@ -506,7 +506,7 @@ function jquery_update_jquery_migrate_backup(&$javascript, $path, $min, $migrate
  *   The '.min' to include in the file name if we are requesting a minified
  *   version.
  */
-function jquery_update_jqueryui_replace(&$javascript, $cdn, $path, $min) {
+function jquery_update_jqueryui_replace(array &$javascript, $cdn, $path, $min) {
 
   $jqueryui_version = variable_get('jquery_update_custom_version_jqueryui', FALSE);
   if (empty($jqueryui_version)) {
@@ -520,7 +520,10 @@ function jquery_update_jqueryui_replace(&$javascript, $cdn, $path, $min) {
     'version' => $jqueryui_version,
     'js' => array('misc/ui/jquery.ui.menu.min.js' => array()),
     'css' => array('misc/ui/jquery.ui.menu.css' => array()),
-    'dependencies' => array(array('system', 'ui.widget'), array('system', 'ui.position')),
+    'dependencies' => array(
+      array('system', 'ui.widget'),
+      array('system', 'ui.position'),
+    ),
   );
   $javascript['ui.spinner'] = array(
     'title' => 'jQuery UI: Spinner',
@@ -528,7 +531,10 @@ function jquery_update_jqueryui_replace(&$javascript, $cdn, $path, $min) {
     'version' => $jqueryui_version,
     'js' => array('misc/ui/jquery.ui.spinner.min.js' => array()),
     'css' => array('misc/ui/jquery.ui.spinner.css' => array()),
-    'dependencies' => array(array('system', 'ui.widget'), array('system', 'ui.button')),
+    'dependencies' => array(
+      array('system', 'ui.widget'),
+      array('system', 'ui.button'),
+    ),
   );
   $javascript['ui.tooltip'] = array(
     'title' => 'jQuery UI: Tooltip',
@@ -536,7 +542,10 @@ function jquery_update_jqueryui_replace(&$javascript, $cdn, $path, $min) {
     'version' => $jqueryui_version,
     'js' => array('misc/ui/jquery.ui.tooltip.min.js' => array()),
     'css' => array('misc/ui/jquery.ui.tooltip.css' => array()),
-    'dependencies' => array(array('system', 'ui.widget'), array('system', 'ui.position')),
+    'dependencies' => array(
+      array('system', 'ui.widget'),
+      array('system', 'ui.position'),
+    ),
   );
 
   // Fix dependencies.
@@ -603,13 +612,14 @@ function jquery_update_jqueryui_replace(&$javascript, $cdn, $path, $min) {
  * @param array $map
  *   Optional. If given, append to it.
  *
- * @return array The keys are library hooks  and the values are each arrays of
- *   2 file name segments as values. The first file name segment can be used to
- *   reach Drupal core's jQuery UI effect files, and the second file name segment
- *   can be used to construct a path to the equivalent replacement
- *   jQuery UI effect file provided by jquery_update.module.
+ * @return array
+ *   The keys are library hooks and the values are each arrays of 2 file name
+ *   segments as values. The first file name segment can be used to reach Drupal
+ *   core's jQuery UI effect files, and the second file name segment can be used
+ *   to construct a path to the equivalent replacement jQuery UI effect file
+ *   provided by jquery_update.module.
  */
-function jquery_update_make_library_hook_to_file_name_segment_map_for_effects($map = array()) {
+function jquery_update_make_library_hook_to_file_name_segment_map_for_effects(array $map = array()) {
   $effect_names = array(
     'blind', 'bounce', 'clip', 'drop', 'explode', 'fade', 'fold',
     'highlight', 'pulsate', 'scale', 'shake', 'slide', 'transfer',
@@ -635,7 +645,7 @@ function jquery_update_make_library_hook_to_file_name_segment_map_for_effects($m
  *   The '.min' to include in the file name if we are requesting a minified
  *   version.
  */
-function jquery_update_jqueryui_backup(&$javascript, $path, $min) {
+function jquery_update_jqueryui_backup(array &$javascript, $path, $min) {
   $js_path = ($min == '.min') ? '/replace/ui/ui/minified/jquery-ui.min.js' : '/replace/ui/ui/jquery-ui.js';
   $javascript['ui']['js'][] = array(
     'data' => 'window.jQuery.ui || document.write("<script src=\'' . base_path() . $path . $js_path . '\'>\x3C/script>")',
@@ -663,7 +673,7 @@ function jquery_update_jqueryui_backup(&$javascript, $path, $min) {
  *   * @param array $names
  *   An array mapping jquery ui parts to their file names.
  */
-function jquery_update_jqueryui_cdn($cdn, &$javascript, $path, $min, $names, $jqueryui_version) {
+function jquery_update_jqueryui_cdn($cdn, array &$javascript, $path, $min, $names, $jqueryui_version) {
 
   // Construct the jQuery UI path and replace the JavaScript.
   $jspath = $path . '/replace/ui/ui/' . ($min == '.min' ? 'minified/' : '');
@@ -704,7 +714,7 @@ function jquery_update_jqueryui_cdn($cdn, &$javascript, $path, $min, $names, $jq
  * @param array $names
  *   An array mapping jquery ui parts to their file names.
  */
-function jquery_update_jqueryui_local(&$javascript, $path, $min, $names) {
+function jquery_update_jqueryui_local(array &$javascript, $path, $min, array $names) {
 
   // Construct the jQuery UI path and replace the JavaScript.
   $jspath = $path . '/replace/ui/ui/' . ($min == '.min' ? 'minified/' : '');
@@ -739,10 +749,8 @@ function jquery_update_permission() {
  * @param string $min
  *   The '.min' to include in the file name if we are requesting a minified
  *   version.
- * @param string $version
- *   The jQuery version to be used.
  */
-function jquery_update_jquery_cookie_replace(&$libraries, $path, $min) {
+function jquery_update_jquery_cookie_replace(array &$libraries, $path, $min) {
   $custom_path = variable_get('jquery_update_custom_path_cookie', FALSE);
   if (empty($custom_path)) {
     // Replace the jQuery Cookie plugin.
@@ -770,10 +778,10 @@ function jquery_update_jquery_cookie_replace(&$libraries, $path, $min) {
  * @param string $min
  *   The '.min' to include in the file name if we are requesting a minified
  *   version.
- * @param string $version
+ * @param string $jquery_version
  *   The jQuery version to be used.
  */
-function jquery_update_jquery_form_replace(&$libraries, $path, $min, $jquery_version) {
+function jquery_update_jquery_form_replace(array &$libraries, $path, $min, $jquery_version) {
   $custom_path = variable_get('jquery_update_custom_path_form', FALSE);
   if (empty($custom_path)) {
     // Replace jQuery Form.
@@ -806,7 +814,7 @@ function jquery_update_jquery_form_replace(&$libraries, $path, $min, $jquery_ver
 /**
  * Query and store latest versions of jQuery libraries.
  *
- * @return
+ * @return string
  *   A version string e.g. "3.6.1" or FALSE
  */
 function jquery_update_latest_version($library = 'jquery', $refresh = FALSE) {
@@ -865,7 +873,7 @@ function _jquery_update_clean_library_name($library) {
 /**
  * Check any custom versions against latest version info.
  *
- * @return
+ * @return array
  *   An array of libraries for which updates are available (empty array if none)
  */
 function _jquery_update_check_available_updates() {

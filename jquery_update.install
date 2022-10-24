@@ -12,7 +12,8 @@ function jquery_update_requirements($phase) {
   $requirements = array();
 
   if ($phase == 'install') {
-    // _jquery_update_check_custom_vs_latest_versions() is defined in jquery_update.module.
+    // _jquery_update_check_custom_vs_latest_versions() is defined in
+    // jquery_update.module.
     module_load_include('module', 'jquery_update');
   }
 

@@ -257,7 +257,9 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Tests that obsolete jQuery versions (removed by 7.x-4.x) set in the
+   * Tests fallback for obsolete jQuery versions.
+   *
+   * Ensure that obsolete jQuery versions (removed by 7.x-4.x) set in the
    * jquery_update_jquery_version variable are replaced by a fallback.
    */
   public function testObsoleteJqueryVersion() {

@@ -179,7 +179,7 @@ function jquery_update_settings_form() {
     '#type' => 'checkbox',
     '#title' => t('Enable jQuery Migrate Plugin'),
     '#default_value' => variable_get('jquery_update_jquery_migrate_enable', FALSE),
-    '#description' => t('Even if jQuery Migrate is enabled, it will not be loaded if the current page\'s jQuery version is lower than 1.9.'),
+    '#description' => t("Even if jQuery Migrate is enabled, it will not be loaded if the current page's jQuery version is lower than 1.9."),
   );
 
   $jquery_migrate_states = array(
