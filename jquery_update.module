@@ -109,9 +109,11 @@ function jquery_update_library_alter(&$libraries, $module) {
   }
 
   // If the ajax version is set then that one always win.
-  if (!empty($_POST['ajax_page_state']['jquery_version'])) {
+  if (!empty($_POST['ajax_page_state']['jquery_version']) && !empty($_POST['ajax_page_state']['jquery_version_token'])) {
     $ajax_version = $_POST['ajax_page_state']['jquery_version'];
-    if (in_array($ajax_version, array('default') + jquery_update_get_versions())) {
+    $token = $_POST['ajax_page_state']['jquery_version_token'];
+    $allowed_versions = array('default') + jquery_update_get_versions();
+    if (in_array($ajax_version, $allowed_versions) && drupal_valid_token($token, $ajax_version)) {
       $jquery_version = $ajax_version;
     }
   }
@@ -120,7 +122,12 @@ function jquery_update_library_alter(&$libraries, $module) {
   // This is what we used to determine which version to use
   // for any ajax callback.
   $libraries['drupal.ajax']['js'][] = array(
-    'data' => array('ajaxPageState' => array('jquery_version' => $jquery_version)),
+    'data' => array(
+      'ajaxPageState' => array(
+        'jquery_version' => $jquery_version,
+        'jquery_version_token' => drupal_get_token($jquery_version),
+      ),
+    ),
     'type' => 'setting',
   );
   $libraries['drupal.ajax']['dependencies'][] = array('jquery_update', 'jquery_update.ajax.fix');

@@ -387,4 +387,41 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
     $this->assertPattern('#' . $default_theme_pattern . '#', 'Default theme has jQuery 3.6.1 and UI 1.13.1');
   }
 
+  /**
+   * Tests that the library alter does not use a POST variable without a token.
+   */
+  public function testAjaxPageStateVersion() {
+    // Use jQuery 2.2 from the module for default and admin themes.
+    $theme_admin = $this->drupalCreateUser(array(
+      'administer jquery update',
+      'administer themes',
+    ));
+    $this->drupalLogin($theme_admin);
+    $form['jquery_update_jquery_version'] = '2.2';
+    $this->drupalPost('/admin/config/development/jquery_update', $form, t('Save configuration'));
+    $this->drupalPost('admin/appearance/settings/seven', $form, t('Save configuration'));
+
+    $libraries = drupal_get_library('system');
+    $this->assertEqual('2.2.4', $libraries['jquery']['version'], 'Configured version 2.2.4 before library alter.');
+    $settings = array_pop($libraries['drupal.ajax']['js']);
+    $this->assertEqual('2.2', $settings['data']['ajaxPageState']['jquery_version'], 'Drupal AJAX is configured 2.2 before library alter.');
+
+    jquery_update_library_alter($libraries, 'system');
+    $this->assertEqual('2.2.4', $libraries['jquery']['version'], 'Configured version 2.2.4 after first library alter.');
+    $settings = array_pop($libraries['drupal.ajax']['js']);
+    $this->assertEqual('2.2', $settings['data']['ajaxPageState']['jquery_version'], 'Drupal AJAX is configured 2.2 after first library alter.');
+
+    $_POST['ajax_page_state']['jquery_version'] = '1.12';
+    jquery_update_library_alter($libraries, 'system');
+    $this->assertEqual('2.2.4', $libraries['jquery']['version'], 'Configured version 2.2.4 after second library alter with POST variable set.');
+    $settings = array_pop($libraries['drupal.ajax']['js']);
+    $this->assertEqual('2.2', $settings['data']['ajaxPageState']['jquery_version'], 'Drupal AJAX is configured 2.2 after second library alter with POST variable set.');
+
+    $_POST['ajax_page_state']['jquery_version_token'] = drupal_get_token('1.12');
+    jquery_update_library_alter($libraries, 'system');
+    $this->assertEqual('1.12.4', $libraries['jquery']['version'], 'Version 1.12.4 from POST variable after third library alter with token.');
+    $settings = array_pop($libraries['drupal.ajax']['js']);
+    $this->assertEqual('1.12', $settings['data']['ajaxPageState']['jquery_version'], 'Drupal AJAX is 1.12 from POST variable after third library alter with token.');
+  }
+
 }
