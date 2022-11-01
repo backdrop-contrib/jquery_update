@@ -327,4 +327,64 @@ class JqueryUpdateTestCase extends DrupalWebTestCase {
 
   }
 
+  /**
+   * Tests setting up multiple non-core jQuery versions.
+   */
+  public function testMultipleVersions() {
+
+    $this->full_admin = $this->drupalCreateUser(
+      array(
+        'administer site configuration',
+        'administer themes',
+        'administer jquery update',
+      )
+    );
+    $this->drupalLogin($this->full_admin);
+
+    $form = array(
+      'jquery_update_custom_path_jquery' => "https://code.jquery.com/jquery-3.6.1.js",
+      'jquery_update_custom_version_jquery' => "3.6.1",
+    );
+    $this->drupalPost('admin/config/development/jquery_update', $form, t('Save configuration'));
+    $form = array(
+      'jquery_update_jquery_version' => "1.12",
+    );
+    $this->drupalPost('admin/appearance/settings/seven', $form, t('Save configuration'));
+
+    $this->drupalGet('admin/reports/status');
+
+    $admin_theme_pattern = preg_quote('jQuery Update (admin_theme: <em class="placeholder">Seven</em>)</td><td class="status-value">jQuery <em class="placeholder">1.12.4</em> (<a href="', '/');
+    $admin_theme_pattern .= '.*' . preg_quote('admin/config/development/jquery_update">configure</a>) and jQuery UI <em class="placeholder">1.10.2</em>', '/');
+
+    $default_theme_pattern = preg_quote('jQuery Update (theme_default: <em class="placeholder">Bartik</em>)</td><td class="status-value">jQuery <em class="placeholder">3.6.1</em> (<a href="', '/');
+    $default_theme_pattern .= '.*' . preg_quote('admin/config/development/jquery_update">configure</a>) and jQuery UI <em class="placeholder">1.10.2</em>', '/');
+
+    $this->assertPattern('#' . $admin_theme_pattern . '#', 'Admin theme has jQuery 1.12.4 and UI 1.10.2');
+    $this->assertPattern('#' . $default_theme_pattern . '#', 'Default theme has jQuery 3.6.1 and UI 1.10.2');
+
+    // This time also set up a custom jQuery UI version.
+    $form = array(
+      'jquery_update_custom_path_jquery' => "https://code.jquery.com/jquery-3.6.1.js",
+      'jquery_update_custom_version_jquery' => "3.6.1",
+      'jquery_update_custom_path_jqueryui' => "https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.1/jquery-ui.min.js",
+      'jquery_update_custom_version_jqueryui' => "1.13.1",
+    );
+    $this->drupalPost('admin/config/development/jquery_update', $form, t('Save configuration'));
+    $form = array(
+      'jquery_update_jquery_version' => "2.2",
+    );
+    $this->drupalPost('admin/appearance/settings/seven', $form, t('Save configuration'));
+
+    $this->drupalGet('admin/reports/status');
+
+    $admin_theme_pattern = preg_quote('jQuery Update (admin_theme: <em class="placeholder">Seven</em>)</td><td class="status-value">jQuery <em class="placeholder">2.2.4</em> (<a href="', '/');
+    $admin_theme_pattern .= '.*' . preg_quote('admin/config/development/jquery_update">configure</a>) and jQuery UI <em class="placeholder">1.13.1</em>', '/');
+
+    $default_theme_pattern = preg_quote('jQuery Update (theme_default: <em class="placeholder">Bartik</em>)</td><td class="status-value">jQuery <em class="placeholder">3.6.1</em> (<a href="', '/');
+    $default_theme_pattern .= '.*' . preg_quote('admin/config/development/jquery_update">configure</a>) and jQuery UI <em class="placeholder">1.13.1</em>', '/');
+
+    $this->assertPattern('#' . $admin_theme_pattern . '#', 'Admin theme has jQuery 2.2.4 and UI 1.13.1');
+    $this->assertPattern('#' . $default_theme_pattern . '#', 'Default theme has jQuery 3.6.1 and UI 1.13.1');
+  }
+
 }

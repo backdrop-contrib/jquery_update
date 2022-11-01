@@ -275,13 +275,13 @@ function jquery_update_get_supported_version_options() {
 function jquery_update_jquery_replace(array &$javascript, $cdn, $path, $min, $version) {
 
   $custom_path = variable_get('jquery_update_custom_path_jquery', FALSE);
-  if (!empty($custom_path)) {
+  $custom_version = variable_get('jquery_update_custom_version_jquery', FALSE);
+  if (!empty($custom_path) && $version == $custom_version) {
     $javascript['jquery']['js']['misc/jquery.js']['data'] = $custom_path;
     $javascript['jquery']['js']['misc/jquery.js']['type'] = url_is_external($custom_path) ? 'external' : 'file';
-    $version = variable_get('jquery_update_custom_version_jquery', FALSE);
-    if (!empty($version)) {
-      $javascript['jquery']['version'] = $version;
-      jquery_update_add_jquery_browser_fix($javascript, $version);
+    if (!empty($custom_version)) {
+      $javascript['jquery']['version'] = $custom_version;
+      jquery_update_add_jquery_browser_fix($javascript, $custom_version);
     }
     return;
   }

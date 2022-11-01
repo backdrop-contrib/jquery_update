@@ -21,11 +21,35 @@ function jquery_update_requirements($phase) {
     $versions = array();
     $themes = list_themes();
 
+    $admin_theme = variable_get('admin_theme', FALSE);
     $jquery = drupal_get_library('system', 'jquery');
     $ui = drupal_get_library('system', 'ui');
-
-    $versions['admin_theme']['jquery'] = $jquery['version'];
-    $versions['admin_theme']['ui'] = $ui['version'];
+    if ($GLOBALS['theme_key'] == $admin_theme) {
+      $versions['admin_theme']['jquery'] = $jquery['version'];
+      $versions['admin_theme']['ui'] = $ui['version'];
+    }
+    else {
+      // This is not always called from the admin theme, e.g. during simpletest.
+      $backup_theme_key = $GLOBALS['theme_key'];
+      $GLOBALS['theme_key'] = $admin_theme;
+      try {
+        $libraries = array('jquery' => $jquery, 'ui' => $ui);
+        jquery_update_library_alter($libraries, 'system');
+        $versions['admin_theme']['jquery'] = $libraries['jquery']['version'];
+        $versions['admin_theme']['ui'] = $libraries['ui']['version'];
+      }
+      catch (\Exception $e) {
+        watchdog_exception('jquery_update', $e);
+        $requirements['jquery_update_error'] = array(
+          'title' => t('An error occurred when checking jQuery versions'),
+          'severity' => REQUIREMENT_ERROR,
+          'description' => t('See the logs for more information.'),
+        );
+        $GLOBALS['theme_key'] = $backup_theme_key;
+        return $requirements;
+      }
+      $GLOBALS['theme_key'] = $backup_theme_key;
+    }
 
     // Try to retrieve versions for the default theme too. This seems a hacky
     // way to do it, but we cannot rely on theme_get_setting() to reflect what
@@ -35,7 +59,7 @@ function jquery_update_requirements($phase) {
       $backup_theme_key = $GLOBALS['theme_key'];
       $GLOBALS['theme_key'] = $default_theme;
       try {
-        $libraries = array($jquery, $ui);
+        $libraries = array('jquery' => $jquery, 'ui' => $ui);
         jquery_update_library_alter($libraries, 'system');
         $versions['theme_default']['jquery'] = $libraries['jquery']['version'];
         $versions['theme_default']['ui'] = $libraries['ui']['version'];

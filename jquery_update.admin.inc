@@ -361,13 +361,14 @@ function jquery_update_settings_form_validate($form, &$form_state) {
  * Implements hook_form_FORM_ID_alter().
  */
 function jquery_update_form_jquery_update_settings_form_alter(&$form, &$form_state, $form_id) {
-  array_unshift($form['#submit'], 'jquery_update_settings_form_submit');
+  array_unshift($form['#submit'], 'jquery_update_settings_form_submit_early');
+  $form['#submit'][] = 'jquery_update_settings_form_submit_late';
 }
 
 /**
- * Submit handler for settings form.
+ * Early submit handler for settings form.
  */
-function jquery_update_settings_form_submit($form, &$form_state) {
+function jquery_update_settings_form_submit_early($form, &$form_state) {
   // Handle empty custom paths / versions.
   $variables = array(
     'jquery_update_custom_path_cookie',
@@ -385,6 +386,22 @@ function jquery_update_settings_form_submit($form, &$form_state) {
     if (empty($form_state['values'][$variable])) {
       unset($form_state['values'][$variable]);
       variable_del($variable);
+    }
+  }
+}
+
+/**
+ * Late submit handler for settings form.
+ */
+function jquery_update_settings_form_submit_late($form, &$form_state) {
+  // Special handling for the first time a custom jQuery version is configured.
+  if (isset($form_state['values']['jquery_update_custom_version_jquery'])) {
+    $custom_version = $form_state['values']['jquery_update_custom_version_jquery'];
+    // If the custom version is not yet available as an option in the form, set
+    // it as the default anyway. This avoids new custom versions requiring two
+    // submissions of the admin form.
+    if (!in_array($custom_version, array_keys($form['jquery_update_jquery_version']['#options']))) {
+      variable_set('jquery_update_jquery_version', $custom_version);
     }
   }
 }
