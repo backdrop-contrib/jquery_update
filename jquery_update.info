@@ -1,6 +1,7 @@
 name = jQuery Update
 description = Update jQuery and jQuery UI to a more recent version.
 package = User interface
-core = 7.x
+backdrop = 1.x
+type = module
 files[] = tests/jquery_update.test
 configure = admin/config/development/jquery_update

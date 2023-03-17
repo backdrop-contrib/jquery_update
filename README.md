@@ -12,15 +12,19 @@ installation can run the most up-to-date jQuery plug-ins.
 
 ## Installation
 
-1. Copy the jquery_update directory to your sites/SITENAME/modules directory.
+* Install this module using the official Backdrop CMS instructions at
+  https://backdropcms.org/guide/modules.
 
-2. Enable the module at Administer >> Site building >> Modules.
+## Current maintainers
 
+* [herbdool](https://github.com/herbdool)
+* Seeking more maintainers.
 
 ## Credits
 
-* Matt Farina (mfer)
-* Jeff Robbins (jjeff)
-* Angela Byron (webchick)
-* Addison Berry (add1sun)
-* Rob Loach (RobLoach)
+This module was originally written for [Drupal](https://drupal.org/project/jquery_update). Credit to: [Matt Farina](https://www.drupal.org/u/mfer), [Jeff Robbins](https://www.drupal.org/u/jjeff), [Angela Byron](https://www.drupal.org/u/webchick), [Addison Berry](https://www.drupal.org/u/add1sun), [Rob Loach](https://www.drupal.org/u/RobLoach).
+
+## License
+
+This project is GPL v2 software. See the LICENSE.txt file in this directory for
+complete text.
