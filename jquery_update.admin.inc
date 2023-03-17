@@ -20,6 +20,9 @@ define('JQUERY_UPDATE_EXAMPLE_JQUERY_FORM_VERSION', '4.3.0');
  * @see jquery_update_menu()
  */
 function jquery_update_settings_form() {
+  $config = config('jquery_update.settings');
+  $form['#config'] = 'jquery_update.settings';
+
   // Vertical Tabs.
   $form['jquery_update'] = array(
     '#type' => 'vertical_tabs',
@@ -27,13 +30,13 @@ function jquery_update_settings_form() {
   );
 
   // Provide the form item to choose which jQuery version to use.
-  $default_version = variable_get('jquery_update_jquery_version', JQUERY_UPDATE_DEFAULT_JQUERY_VERSION);
-  $custom_jquery = variable_get('jquery_update_custom_version_jquery', FALSE);
+  $default_version = $config->get('jquery_version', JQUERY_UPDATE_DEFAULT_JQUERY_VERSION);
+  $custom_jquery = $config->get('custom_version_jquery', FALSE);
   if (!empty($custom_jquery)) {
     $default_version = $custom_jquery;
   }
   $version_options = jquery_update_get_version_options(FALSE);
-  $form['jquery_update_jquery_version'] = array(
+  $form['jquery_version'] = array(
     '#type' => 'select',
     '#title' => t('Default jQuery version'),
     '#options' => $version_options,
@@ -43,8 +46,8 @@ function jquery_update_settings_form() {
 
   // Theme-specific override version.
   $themes = list_themes();
-  $theme_default = variable_get('theme_default', FALSE);
-  $admin_theme = variable_get('admin_theme', FALSE);
+  $theme_default = config_get('system.core', 'theme_default');
+  $admin_theme = config_get('system.core', 'admin_theme');
   $header = array(t('Theme'), t('jQuery version'), t('Operations'));
   $rows = array();
   // Go through all themes.
@@ -126,7 +129,7 @@ function jquery_update_settings_form() {
     '#description' => t('Modify how jQuery is loaded to increase download and render performance.'),
   );
 
-  $form['performance']['jquery_update_compression_type'] = array(
+  $form['performance']['compression_type'] = array(
     '#type' => 'radios',
     '#title' => t('jQuery compression level'),
     '#options' => array(
@@ -136,12 +139,12 @@ function jquery_update_settings_form() {
     // Do not show this field if jQuery version is default.
     '#states' => array(
       'invisible' => array(
-        ':input[name=jquery_update_jquery_version]' => array('value' => "default"),
+        ':input[name=jquery_version]' => array('value' => "default"),
       ),
     ),
-    '#default_value' => variable_get('jquery_update_compression_type', 'min'),
+    '#default_value' => $config->get('compression_type', 'min'),
   );
-  $form['performance']['jquery_update_jquery_cdn'] = array(
+  $form['performance']['jquery_cdn'] = array(
     '#type' => 'select',
     '#title' => t('jQuery and jQuery UI CDN'),
     '#options' => array(
@@ -153,10 +156,10 @@ function jquery_update_settings_form() {
     // Do not show this field if jQuery version is default.
     '#states' => array(
       'invisible' => array(
-        ':input[name=jquery_update_jquery_version]' => array('value' => "default"),
+        ':input[name=jquery_version]' => array('value' => "default"),
       ),
     ),
-    '#default_value' => variable_get('jquery_update_jquery_cdn', 'none'),
+    '#default_value' => $config->get('jquery_cdn', 'none'),
     '#description' => t('Use jQuery and jQuery UI from a CDN. If the CDN is not available the local version of jQuery and jQuery UI will be used.'),
   );
 
@@ -175,45 +178,45 @@ function jquery_update_settings_form() {
     $form['jquery_migrate']['#description'] .= '<br /><strong>' . t('Note that the jQuery Update module only provides jQuery Migrate for jQuery versions before 3.x. A newer version of jQuery Migrate for the current version of jQuery can be configured via a Custom path.') . '</strong>';
   }
 
-  $form['jquery_migrate']['jquery_update_jquery_migrate_enable'] = array(
+  $form['jquery_migrate']['jquery_migrate_enable'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable jQuery Migrate Plugin'),
-    '#default_value' => variable_get('jquery_update_jquery_migrate_enable', FALSE),
+    '#default_value' => $config->get('jquery_migrate_enable', FALSE),
     '#description' => t("Even if jQuery Migrate is enabled, it will not be loaded if the current page's jQuery version is lower than 1.9."),
   );
 
   $jquery_migrate_states = array(
     'visible' => array(
-      ':input[name="jquery_migrate[jquery_update_jquery_migrate_enable]"]' => array('checked' => TRUE),
+      ':input[name="jquery_migrate[jquery_migrate_enable]"]' => array('checked' => TRUE),
     ),
   );
-  $form['jquery_migrate']['jquery_update_jquery_migrate_cdn'] = array(
+  $form['jquery_migrate']['jquery_migrate_cdn'] = array(
     '#type' => 'select',
     '#title' => t('jQuery Migrate CDN'),
     '#options' => array(
       'none' => t('None'),
       'jquery' => t('jQuery'),
     ),
-    '#default_value' => variable_get('jquery_update_jquery_migrate_cdn', 'none'),
+    '#default_value' => $config->get('jquery_migrate_cdn', 'none'),
     '#description' => t('Load the jQuery Migrate plugin using a CDN. If the CDN is not available the local module version of the plugin will be used instead.'),
     '#states' => $jquery_migrate_states,
   );
 
   $jquery_migrate_api_url = 'https://github.com/jquery/jquery-migrate/#migrate-plugin-api';
-  $form['jquery_migrate']['jquery_update_jquery_migrate_warnings'] = array(
+  $form['jquery_migrate']['jquery_migrate_warnings'] = array(
     '#type' => 'checkbox',
     '#title' => t('Console warnings'),
-    '#default_value' => variable_get('jquery_update_jquery_migrate_warnings', FALSE),
+    '#default_value' => $config->get('jquery_migrate_warnings', FALSE),
     '#description' => t('Toggle the <a href="!url">generation of console warnings</a> when using the debug version of jQuery Migrate.', array(
       '!url' => $jquery_migrate_api_url,
     )),
     '#states' => $jquery_migrate_states,
   );
 
-  $form['jquery_migrate']['jquery_update_jquery_migrate_trace'] = array(
+  $form['jquery_migrate']['jquery_migrate_trace'] = array(
     '#type' => 'checkbox',
     '#title' => t('Console trace'),
-    '#default_value' => variable_get('jquery_update_jquery_migrate_trace', FALSE),
+    '#default_value' => $config->get('jquery_migrate_trace', FALSE),
     '#description' => t('Toggle the <a href="!url">generation of console trace messages</a> when using the debug version of jQuery Migrate.', array(
       '!url' => $jquery_migrate_api_url,
     )),
@@ -232,91 +235,91 @@ function jquery_update_settings_form() {
 
   $latest_version = jquery_update_latest_version('jquery');
   $example_version = $latest_version ? $latest_version : JQUERY_UPDATE_EXAMPLE_JQUERY_VERSION;
-  $form['jquery_custom']['jquery_update_custom_path_jquery'] = array(
+  $form['jquery_custom']['custom_path_jquery'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery path'),
-    '#default_value' => variable_get('jquery_update_custom_path_jquery', ''),
+    '#default_value' => $config->get('custom_path_jquery', ''),
     '#description' => t('Example: %url or %path', array(
       '%url' => 'https://code.jquery.com/jquery-' . $example_version . '.js',
-      '%path' => '/sites/default/files/jquery_update/jquery.js',
+      '%path' => '/files/jquery_update/jquery.js',
     )),
   );
-  $form['jquery_custom']['jquery_update_custom_version_jquery'] = array(
+  $form['jquery_custom']['custom_version_jquery'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery version'),
-    '#default_value' => variable_get('jquery_update_custom_version_jquery', ''),
+    '#default_value' => $config->get('custom_version_jquery', ''),
     '#description' => t('Example: %version', array('%version' => $example_version)),
   );
 
   $latest_version = jquery_update_latest_version('jqueryui');
   $example_version = $latest_version ? $latest_version : JQUERY_UPDATE_EXAMPLE_JQUERYUI_VERSION;
-  $form['jquery_custom']['jquery_update_custom_path_jqueryui'] = array(
+  $form['jquery_custom']['custom_path_jqueryui'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery UI path'),
-    '#default_value' => variable_get('jquery_update_custom_path_jqueryui', ''),
+    '#default_value' => $config->get('custom_path_jqueryui', ''),
     '#description' => t('Example: %url or %path', array(
       '%url' => 'https://cdnjs.cloudflare.com/ajax/libs/jqueryui/' . $example_version . '/jquery-ui.min.js',
-      '%path' => '/sites/default/files/jquery_update/jquery-ui.min.js',
+      '%path' => '/files/jquery_update/jquery-ui.min.js',
     )),
   );
-  $form['jquery_custom']['jquery_update_custom_version_jqueryui'] = array(
+  $form['jquery_custom']['custom_version_jqueryui'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery UI version'),
-    '#default_value' => variable_get('jquery_update_custom_version_jqueryui', ''),
+    '#default_value' => $config->get('custom_version_jqueryui', ''),
     '#description' => t('Example: %version', array('%version' => $example_version)),
   );
 
   $latest_version = jquery_update_latest_version('jquery-migrate');
   $example_version = $latest_version ? $latest_version : JQUERY_UPDATE_EXAMPLE_JQUERY_MIGRATE_VERSION;
-  $form['jquery_custom']['jquery_update_custom_path_migrate'] = array(
+  $form['jquery_custom']['custom_path_migrate'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery Migrate path'),
-    '#default_value' => variable_get('jquery_update_custom_path_migrate', ''),
+    '#default_value' => $config->get('custom_path_migrate', ''),
     '#description' => t('Example: %url or %path', array(
       '%url' => 'https://cdn.jsdelivr.net/npm/jquery-migrate@' . $example_version . '/dist/jquery-migrate.min.js',
-      '%path' => '/sites/default/files/jquery_update/jquery-migrate.js',
+      '%path' => '/files/jquery_update/jquery-migrate.js',
     )),
   );
-  $form['jquery_custom']['jquery_update_custom_version_jquery_migrate'] = array(
+  $form['jquery_custom']['custom_version_jquery_migrate'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery Migrate version'),
-    '#default_value' => variable_get('jquery_update_custom_version_jquery_migrate', ''),
+    '#default_value' => $config->get('custom_version_jquery_migrate', ''),
     '#description' => t('Example: %version', array('%version' => $example_version)),
   );
 
   $latest_version = jquery_update_latest_version('jquery-cookie');
   $example_version = $latest_version ? $latest_version : JQUERY_UPDATE_EXAMPLE_JQUERY_COOKIE_VERSION;
-  $form['jquery_custom']['jquery_update_custom_path_cookie'] = array(
+  $form['jquery_custom']['custom_path_cookie'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery Cookie path'),
-    '#default_value' => variable_get('jquery_update_custom_path_cookie', ''),
+    '#default_value' => $config->get('custom_path_cookie', ''),
     '#description' => t('Example: %url or %path', array(
       '%url' => 'https://cdn.jsdelivr.net/gh/carhartl/jquery-cookie@' . $example_version . '/jquery.cookie.js',
-      '%path' => '/sites/default/files/jquery_update/jquery.cookie.js',
+      '%path' => '/files/jquery_update/jquery.cookie.js',
     )),
   );
-  $form['jquery_custom']['jquery_update_custom_version_jquery_cookie'] = array(
+  $form['jquery_custom']['custom_version_jquery_cookie'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery Cookie version'),
-    '#default_value' => variable_get('jquery_update_custom_version_jquery_cookie', ''),
+    '#default_value' => $config->get('custom_version_jquery_cookie', ''),
     '#description' => t('Example: %version', array('%version' => $example_version)),
   );
 
   $latest_version = jquery_update_latest_version('jquery.form');
   $example_version = $latest_version ? $latest_version : JQUERY_UPDATE_EXAMPLE_JQUERY_FORM_VERSION;
-  $form['jquery_custom']['jquery_update_custom_path_form'] = array(
+  $form['jquery_custom']['custom_path_form'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery Form path'),
-    '#default_value' => variable_get('jquery_update_custom_path_form', ''),
+    '#default_value' => $config->get('custom_path_form', ''),
     '#description' => t('Example: %url or %path', array(
       '%url' => 'https://cdn.jsdelivr.net/gh/jquery-form/form@' . $example_version . '/dist/jquery.form.min.js',
-      '%path' => '/sites/default/files/jquery_update/jquery.form.js',
+      '%path' => '/files/jquery_update/jquery.form.js',
     )),
   );
-  $form['jquery_custom']['jquery_update_custom_version_jquery_form'] = array(
+  $form['jquery_custom']['custom_version_jquery_form'] = array(
     '#type' => 'textfield',
     '#title' => t('Custom jQuery Form version'),
-    '#default_value' => variable_get('jquery_update_custom_version_jquery_form', ''),
+    '#default_value' => $config->get('custom_version_jquery_form', ''),
     '#description' => t('Example: %version', array('%version' => $example_version)),
   );
 
@@ -330,29 +333,29 @@ function jquery_update_settings_form() {
  */
 function jquery_update_settings_form_validate($form, &$form_state) {
   // Handle empty custom paths / versions.
-  if (!empty($form_state['values']['jquery_update_custom_path_jquery'])) {
-    if (empty($form_state['values']['jquery_update_custom_version_jquery'])) {
-      form_set_error('jquery_update_custom_version_jquery', 'Please provide a version for the custom jQuery path');
+  if (!empty($form_state['values']['custom_path_jquery'])) {
+    if (empty($form_state['values']['custom_version_jquery'])) {
+      form_set_error('custom_version_jquery', 'Please provide a version for the custom jQuery path');
     }
   }
-  if (!empty($form_state['values']['jquery_update_custom_path_jqueryui'])) {
-    if (empty($form_state['values']['jquery_update_custom_version_jqueryui'])) {
-      form_set_error('jquery_update_custom_version_jqueryui', 'Please provide a version for the custom jQuery UI path');
+  if (!empty($form_state['values']['custom_path_jqueryui'])) {
+    if (empty($form_state['values']['custom_version_jqueryui'])) {
+      form_set_error('custom_version_jqueryui', 'Please provide a version for the custom jQuery UI path');
     }
   }
-  if (!empty($form_state['values']['jquery_update_custom_path_cookie'])) {
-    if (empty($form_state['values']['jquery_update_custom_version_jquery_cookie'])) {
-      form_set_error('jquery_update_custom_version_jquery_cookie', 'Please provide a version for the custom jQuery Cookie path');
+  if (!empty($form_state['values']['custom_path_cookie'])) {
+    if (empty($form_state['values']['custom_version_jquery_cookie'])) {
+      form_set_error('custom_version_jquery_cookie', 'Please provide a version for the custom jQuery Cookie path');
     }
   }
-  if (!empty($form_state['values']['jquery_update_custom_path_form'])) {
-    if (empty($form_state['values']['jquery_update_custom_version_jquery_form'])) {
-      form_set_error('jquery_update_custom_version_jquery_form', 'Please provide a version for the custom jQuery Form path');
+  if (!empty($form_state['values']['custom_path_form'])) {
+    if (empty($form_state['values']['custom_version_jquery_form'])) {
+      form_set_error('custom_version_jquery_form', 'Please provide a version for the custom jQuery Form path');
     }
   }
-  if (!empty($form_state['values']['jquery_update_custom_path_migrate'])) {
-    if (empty($form_state['values']['jquery_update_custom_version_jquery_migrate'])) {
-      form_set_error('jquery_update_custom_version_jquery_migrate', 'Please provide a version for the custom jQuery Migrate path');
+  if (!empty($form_state['values']['custom_path_migrate'])) {
+    if (empty($form_state['values']['custom_version_jquery_migrate'])) {
+      form_set_error('custom_version_jquery_migrate', 'Please provide a version for the custom jQuery Migrate path');
     }
   }
 }
@@ -370,24 +373,26 @@ function jquery_update_form_jquery_update_settings_form_alter(&$form, &$form_sta
  */
 function jquery_update_settings_form_submit_early($form, &$form_state) {
   // Handle empty custom paths / versions.
+  $config = config('jquery_update.settings');
   $variables = array(
-    'jquery_update_custom_path_cookie',
-    'jquery_update_custom_path_form',
-    'jquery_update_custom_path_jquery',
-    'jquery_update_custom_path_jqueryui',
-    'jquery_update_custom_path_migrate',
-    'jquery_update_custom_version_jquery',
-    'jquery_update_custom_version_jquery_cookie',
-    'jquery_update_custom_version_jquery_form',
-    'jquery_update_custom_version_jquery_migrate',
-    'jquery_update_custom_version_jqueryui',
+    'custom_path_cookie',
+    'custom_path_form',
+    'custom_path_jquery',
+    'custom_path_jqueryui',
+    'custom_path_migrate',
+    'custom_version_jquery',
+    'custom_version_jquery_cookie',
+    'custom_version_jquery_form',
+    'custom_version_jquery_migrate',
+    'custom_version_jqueryui',
   );
   foreach ($variables as $variable) {
     if (empty($form_state['values'][$variable])) {
       unset($form_state['values'][$variable]);
-      variable_del($variable);
+      $config->set($variable, '');
     }
   }
+  $config->save();
 }
 
 /**
@@ -395,13 +400,14 @@ function jquery_update_settings_form_submit_early($form, &$form_state) {
  */
 function jquery_update_settings_form_submit_late($form, &$form_state) {
   // Special handling for the first time a custom jQuery version is configured.
-  if (isset($form_state['values']['jquery_update_custom_version_jquery'])) {
-    $custom_version = $form_state['values']['jquery_update_custom_version_jquery'];
+  $config = config('jquery_update.settings');
+  if (isset($form_state['values']['custom_version_jquery'])) {
+    $custom_version = $form_state['values']['custom_version_jquery'];
     // If the custom version is not yet available as an option in the form, set
     // it as the default anyway. This avoids new custom versions requiring two
     // submissions of the admin form.
-    if (!in_array($custom_version, array_keys($form['jquery_update_jquery_version']['#options']))) {
-      variable_set('jquery_update_jquery_version', $custom_version);
+    if (!in_array($custom_version, array_keys($form['jquery_version']['#options']))) {
+      $config->set('jquery_version', $custom_version);
     }
   }
 }
@@ -410,6 +416,7 @@ function jquery_update_settings_form_submit_late($form, &$form_state) {
  * The Latest versions fieldset.
  */
 function jquery_update_add_latest_version_info(&$form) {
+  $config = config('jquery_update.settings');
 
   $form['jquery_latest_versions'] = array(
     '#type' => 'fieldset',
@@ -421,7 +428,7 @@ function jquery_update_add_latest_version_info(&$form) {
     '#description' => t('Information about the latest available versions of the jQuery libraries the jQuery Update module integrates.'),
   );
 
-  $last_update = variable_get('jquery_update_latest_versions_checked', FALSE);
+  $last_update = $config->get('latest_versions_checked', FALSE);
   if ($last_update) {
     $message = t('Version info last updated %datetime', array('%datetime' => format_date($last_update)));
     $form['jquery_latest_versions']['#description'] .= '<br />' . $message;
@@ -455,7 +462,7 @@ function jquery_update_add_latest_version_info(&$form) {
       '#markup' => t('Latest version: %version', array('%version' => $version)),
     );
     if (in_array($library, $updates_available)) {
-      $custom_version = variable_get('jquery_update_custom_version_' . _jquery_update_clean_library_name($library), 'error');
+      $custom_version = $config->get('custom_version_' . _jquery_update_clean_library_name($library), 'error');
       $message = t('An update (%update) is available for the current custom version (%current) of the %library library.',
         array(
           '%update' => $version,
@@ -464,24 +471,24 @@ function jquery_update_add_latest_version_info(&$form) {
         )
       );
       $form['jquery_latest_versions']['latest_version_' . $library]['#description'] = '<strong>' . $message . '</strong>';
-      if (variable_get('jquery_update_warning_available_update', TRUE)) {
+      if ($config->get('warning_available_update', TRUE)) {
         backdrop_set_message($message, 'warning', FALSE);
       }
     }
   }
 
-  $form['jquery_latest_versions']['jquery_update_check_latest_versions'] = array(
+  $form['jquery_latest_versions']['check_latest_versions'] = array(
     '#type' => 'checkbox',
     '#title' => t('Check latest version info?'),
-    '#default_value' => variable_get('jquery_update_check_latest_versions', TRUE),
+    '#default_value' => $config->get('check_latest_versions', TRUE),
     '#description' => t('If enabled, jQuery Update checks %cdnjs for latest version info no more than once a day via cron.', array(
       '%cdnjs' => 'api.cdnjs.com',
     )),
   );
-  $form['jquery_latest_versions']['jquery_update_warning_available_update'] = array(
+  $form['jquery_latest_versions']['warning_available_update'] = array(
     '#type' => 'checkbox',
     '#title' => t('Warn about available updates?'),
-    '#default_value' => variable_get('jquery_update_warning_available_update', TRUE),
+    '#default_value' => $config->get('warning_available_update', TRUE),
     '#description' => t("If enabled, jQuery Update will warn about available updates via messages in its admin UI and the main Status report."),
   );
 }

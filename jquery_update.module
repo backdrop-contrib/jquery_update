@@ -2,23 +2,10 @@
 
 /**
  * @file
- * Updates Drupal to use the latest version of jQuery.
+ * Updates Backdrop to use the latest version of jQuery.
  */
 
 define('JQUERY_UPDATE_DEFAULT_JQUERY_VERSION', '1.12');
-
-/**
- * Implements hook_help().
- */
-function jquery_update_help($path, $arg) {
-  switch ($path) {
-    // Help for another path in the block module.
-    case 'admin/config/development/jquery_update':
-      return '<p>' . t('Configure how <a href="@jquery">jQuery</a> behaves on the site. Select which jQuery version, the compression level and whether or not to use a CDN.', array(
-        '@jquery' => 'http://jquery.com',
-      )) . '</p>';
-  }
-}
 
 /**
  * Implements hook_config_info().
@@ -115,13 +102,14 @@ function jquery_update_library_info_alter(&$libraries, $module) {
   if ($module !== 'system') {
     return;
   }
+  $config = config('jquery_update.settings');
 
   $path = backdrop_get_path('module', 'jquery_update');
-  $min = variable_get('jquery_update_compression_type', 'min') == 'none' ? '' : '.min';
-  $jquery_version = variable_get('jquery_update_jquery_version', JQUERY_UPDATE_DEFAULT_JQUERY_VERSION);
+  $min = $config->get('compression_type') == 'none' ? '' : '.min';
+  $jquery_version = $config->get('jquery_version', JQUERY_UPDATE_DEFAULT_JQUERY_VERSION);
 
   // Make sure we inject either the minified or uncompressed version as desired.
-  $cdn = variable_get('jquery_update_jquery_cdn', 'none');
+  $cdn = $config->get('jquery_cdn');
 
   // Replace jQuery with the alternative version.
   $theme_version = theme_get_setting('jquery_update_jquery_version');
@@ -142,7 +130,7 @@ function jquery_update_library_info_alter(&$libraries, $module) {
   // Always add a new jquery_version array to ajaxPageState.
   // This is what we used to determine which version to use
   // for any ajax callback.
-  $libraries['drupal.ajax']['js'][] = array(
+  $libraries['backdrop.ajax']['js'][] = array(
     'data' => array(
       'ajaxPageState' => array(
         'jquery_version' => $jquery_version,
@@ -151,16 +139,16 @@ function jquery_update_library_info_alter(&$libraries, $module) {
     ),
     'type' => 'setting',
   );
-  $libraries['drupal.ajax']['dependencies'][] = array('jquery_update', 'jquery_update.ajax.fix');
+  $libraries['backdrop.ajax']['dependencies'][] = array('jquery_update', 'jquery_update.ajax.fix');
 
-  // Don't replace anything if Drupal provided jQuery should be used.
+  // Don't replace anything if Backdrop provided jQuery should be used.
   if ('default' == $jquery_version) {
     return;
   }
 
   jquery_update_jquery_replace($libraries, $cdn, $path, $min, $jquery_version);
 
-  $jqueryui_custom_version = (bool) variable_get('jquery_update_custom_version_jqueryui', FALSE);
+  $jqueryui_custom_version = (bool) $config->get('custom_version_jqueryui');
   // Replace jQuery UI with CDN or local files. If from a CDN include all of
   // jQuery UI.
   if ($jqueryui_custom_version || version_compare($jquery_version, '1.6', '>=')) {
@@ -255,11 +243,12 @@ function jquery_update_get_versions() {
  *   The available jQuery versions used to populate a select input.
  */
 function jquery_update_get_version_options($empty = TRUE) {
+  $config = config('jquery_update.settings');
   $options = array_merge(array(
     '' => t('Site default (!version)', array(
-      '!version' => variable_get('jquery_update_jquery_version', JQUERY_UPDATE_DEFAULT_JQUERY_VERSION),
+      '!version' => $config->get('jquery_version'),
     )),
-    'default' => t('1.4 (Drupal core)'),
+    'default' => t('1.12 (Backdrop core)'),
   ), jquery_update_get_supported_version_options());
   if (!$empty) {
     unset($options['']);
@@ -272,10 +261,11 @@ function jquery_update_get_version_options($empty = TRUE) {
  */
 function jquery_update_get_supported_version_options() {
   $options = array();
+  $config = config('jquery_update.settings');
   foreach (jquery_update_get_versions() as $version) {
     $options[$version] = $version;
   }
-  $custom_jquery = variable_get('jquery_update_custom_version_jquery', FALSE);
+  $custom_jquery = $config->get('custom_version_jquery');
   if (!empty($custom_jquery)) {
     $options[$custom_jquery] = $custom_jquery . ' ' . t('(Custom)');
   }
@@ -301,12 +291,12 @@ function jquery_update_get_supported_version_options() {
  *   The jQuery version to be used.
  */
 function jquery_update_jquery_replace(array &$javascript, $cdn, $path, $min, $version) {
-
-  $custom_path = variable_get('jquery_update_custom_path_jquery', FALSE);
-  $custom_version = variable_get('jquery_update_custom_version_jquery', FALSE);
+  $config = config('jquery_update.settings');
+  $custom_path = $config->get('custom_path_jquery');
+  $custom_version = $config->get('custom_version_jquery');
   if (!empty($custom_path) && $version == $custom_version) {
-    $javascript['jquery']['js']['misc/jquery.js']['data'] = $custom_path;
-    $javascript['jquery']['js']['misc/jquery.js']['type'] = url_is_external($custom_path) ? 'external' : 'file';
+    $javascript['jquery']['js']['core/misc/jquery.js']['data'] = $custom_path;
+    $javascript['jquery']['js']['core/misc/jquery.js']['type'] = url_is_external($custom_path) ? 'external' : 'file';
     if (!empty($custom_version)) {
       $javascript['jquery']['version'] = $custom_version;
       jquery_update_add_jquery_browser_fix($javascript, $custom_version);
@@ -342,26 +332,26 @@ function jquery_update_jquery_replace(array &$javascript, $cdn, $path, $min, $ve
   // Check for CDN support.
   switch ($cdn) {
     case 'google':
-      $javascript['jquery']['js']['misc/jquery.js']['data'] = '//ajax.googleapis.com/ajax/libs/jquery/' . $trueversion . '/jquery' . $min . '.js';
-      $javascript['jquery']['js']['misc/jquery.js']['type'] = 'external';
+      $javascript['jquery']['js']['core/misc/jquery.js']['data'] = '//ajax.googleapis.com/ajax/libs/jquery/' . $trueversion . '/jquery' . $min . '.js';
+      $javascript['jquery']['js']['core/misc/jquery.js']['type'] = 'external';
       jquery_update_jquery_backup($javascript, $path, $min, $version);
       break;
 
     case 'microsoft':
-      $javascript['jquery']['js']['misc/jquery.js']['data'] = '//ajax.aspnetcdn.com/ajax/jQuery/jquery-' . $trueversion . $min . '.js';
-      $javascript['jquery']['js']['misc/jquery.js']['type'] = 'external';
+      $javascript['jquery']['js']['core/misc/jquery.js']['data'] = '//ajax.aspnetcdn.com/ajax/jQuery/jquery-' . $trueversion . $min . '.js';
+      $javascript['jquery']['js']['core/misc/jquery.js']['type'] = 'external';
       jquery_update_jquery_backup($javascript, $path, $min, $version);
       break;
 
     case 'jquery':
-      $javascript['jquery']['js']['misc/jquery.js']['data'] = '//code.jquery.com/jquery-' . $trueversion . $min . '.js';
-      $javascript['jquery']['js']['misc/jquery.js']['type'] = 'external';
+      $javascript['jquery']['js']['core/misc/jquery.js']['data'] = '//code.jquery.com/jquery-' . $trueversion . $min . '.js';
+      $javascript['jquery']['js']['core/misc/jquery.js']['type'] = 'external';
       jquery_update_jquery_backup($javascript, $path, $min, $version);
       break;
 
     case 'none':
     default:
-      $javascript['jquery']['js']['misc/jquery.js']['data'] = $path . '/replace/jquery/' . $version . '/jquery' . $min . '.js';
+      $javascript['jquery']['js']['core/misc/jquery.js']['data'] = $path . '/replace/jquery/' . $version . '/jquery' . $min . '.js';
       break;
   }
   jquery_update_add_jquery_browser_fix($javascript, $version);
@@ -430,11 +420,12 @@ function jquery_update_jquery_backup(array &$javascript, $path, $min, $version) 
 function jquery_update_jquery_migrate_replace(array &$libraries, $path, $min, $version) {
   // Immediately return if jQuery Migrate isn't enabled or jQuery version
   // isn't at least 1.9 or higher.
-  if (!variable_get('jquery_update_jquery_migrate_enable', FALSE) || !version_compare($version, '1.9', '>=')) {
+  $config = config('jquery_update.settings');
+  if (!$config->get('jquery_migrate_enable') || !version_compare($version, '1.9', '>=')) {
     return;
   }
 
-  $custom_path = variable_get('jquery_update_custom_path_migrate', FALSE);
+  $custom_path = $config->get('custom_path_migrate');
   if (version_compare($version, '3.0', '>=')) {
     $migrate_version = '3';
     if (empty($custom_path)) {
@@ -466,8 +457,8 @@ function jquery_update_jquery_migrate_replace(array &$libraries, $path, $min, $v
   // Configure the jQuery Migrate plugin.
   // Note: This must be done after jQuery has loaded, but before the jQuery
   // migrate plugin has loaded.
-  $data = 'jQuery.migrateMute=' . (variable_get('jquery_update_jquery_migrate_warnings', FALSE) ? 'false' : 'true') . ';';
-  $data .= 'jQuery.migrateTrace=' . (variable_get('jquery_update_jquery_migrate_trace', FALSE) ? 'true' : 'false') . ';';
+  $data = 'jQuery.migrateMute=' . ($config->get('jquery_migrate_warnings') ? 'false' : 'true') . ';';
+  $data .= 'jQuery.migrateTrace=' . ($config->get('jquery_migrate_trace') ? 'true' : 'false') . ';';
   $libraries['jquery.migrate']['js'][] = array(
     'data' => $data,
     'type' => 'inline',
@@ -479,9 +470,9 @@ function jquery_update_jquery_migrate_replace(array &$libraries, $path, $min, $v
 
   // Check for CDN support.
   if (empty($custom_path)) {
-    if (variable_get('jquery_update_jquery_migrate_cdn', 'none') === 'jquery') {
+    if ($config->get('jquery_migrate_cdn') === 'jquery') {
       $default_migrate_version = ($migrate_version === '3') ? '3.0.0' : '1.4.1';
-      $jquery_migrate_cdn_version = variable_get('jquery_update_custom_version_jquery_migrate', FALSE);
+      $jquery_migrate_cdn_version = $config->get('custom_version_jquery_migrate');
       if ($jquery_migrate_cdn_version !== FALSE) {
         $migrate_version = $jquery_migrate_cdn_version;
       }
@@ -499,7 +490,7 @@ function jquery_update_jquery_migrate_replace(array &$libraries, $path, $min, $v
     if (strpos($custom_path, '//') !== FALSE) {
       $libraries['jquery.migrate']['js'][$file]['type'] = 'external';
     }
-    $custom_version = variable_get('jquery_update_custom_version_jquery_migrate', FALSE);
+    $custom_version = $config->get('custom_version_jquery_migrate');
     if (!empty($custom_version)) {
       $libraries['jquery.migrate']['version'] = $custom_version;
     }
@@ -549,10 +540,10 @@ function jquery_update_jquery_migrate_backup(array &$javascript, $path, $min, $m
  *   version.
  */
 function jquery_update_jqueryui_replace(array &$javascript, $cdn, $path, $min) {
-
-  $jqueryui_version = variable_get('jquery_update_custom_version_jqueryui', FALSE);
+  $config = config('jquery_update.settings');
+  $jqueryui_version = $config->get('custom_version_jqueryui');
   if (empty($jqueryui_version)) {
-    $jqueryui_version = '1.10.2';
+    $jqueryui_version = '1.13.0';
   }
 
   // Add new components.
@@ -560,8 +551,8 @@ function jquery_update_jqueryui_replace(array &$javascript, $cdn, $path, $min) {
     'title' => 'jQuery UI: Menu',
     'website' => 'http://jqueryui.com/demos/menu/',
     'version' => $jqueryui_version,
-    'js' => array('misc/ui/jquery.ui.menu.min.js' => array()),
-    'css' => array('misc/ui/jquery.ui.menu.css' => array()),
+    'js' => array('core/misc/ui/jquery.ui.menu.min.js' => array()),
+    'css' => array('core/misc/ui/jquery.ui.menu.css' => array()),
     'dependencies' => array(
       array('system', 'ui.widget'),
       array('system', 'ui.position'),
@@ -571,8 +562,8 @@ function jquery_update_jqueryui_replace(array &$javascript, $cdn, $path, $min) {
     'title' => 'jQuery UI: Spinner',
     'website' => 'http://jqueryui.com/demos/spinner/',
     'version' => $jqueryui_version,
-    'js' => array('misc/ui/jquery.ui.spinner.min.js' => array()),
-    'css' => array('misc/ui/jquery.ui.spinner.css' => array()),
+    'js' => array('core/misc/ui/jquery.ui.spinner.min.js' => array()),
+    'css' => array('core/misc/ui/jquery.ui.spinner.css' => array()),
     'dependencies' => array(
       array('system', 'ui.widget'),
       array('system', 'ui.button'),
@@ -582,8 +573,8 @@ function jquery_update_jqueryui_replace(array &$javascript, $cdn, $path, $min) {
     'title' => 'jQuery UI: Tooltip',
     'website' => 'http://jqueryui.com/demos/tooltip/',
     'version' => $jqueryui_version,
-    'js' => array('misc/ui/jquery.ui.tooltip.min.js' => array()),
-    'css' => array('misc/ui/jquery.ui.tooltip.css' => array()),
+    'js' => array('core/misc/ui/jquery.ui.tooltip.min.js' => array()),
+    'css' => array('core/misc/ui/jquery.ui.tooltip.css' => array()),
     'dependencies' => array(
       array('system', 'ui.widget'),
       array('system', 'ui.position'),
@@ -604,7 +595,7 @@ function jquery_update_jqueryui_replace(array &$javascript, $cdn, $path, $min) {
     $javascript[$name]['css']["misc/ui/jquery.$file.css"]['data'] = $csspath . 'jquery.' . $file . $min . '.css';
   }
   // Make sure ui.theme is replaced as well.
-  $javascript['ui']['css']['misc/ui/jquery.ui.theme.css']['data'] = $csspath . 'jquery.ui.theme' . $min . '.css';
+  $javascript['ui']['css']['core/misc/ui/jquery.ui.theme.css']['data'] = $csspath . 'jquery.ui.theme' . $min . '.css';
 
   // Replace jQuery UI's JavaScript, beginning by defining the mapping.
   $names = backdrop_map_assoc(array(
@@ -617,7 +608,7 @@ function jquery_update_jqueryui_replace(array &$javascript, $cdn, $path, $min) {
   $names['effects'] = array('effects.core', 'ui.effect');
   $names = jquery_update_make_library_hook_to_file_name_segment_map_for_effects($names);
 
-  $custom_path = variable_get('jquery_update_custom_path_jqueryui', FALSE);
+  $custom_path = $config->get('custom_path_jqueryui');
   if (!empty($custom_path)) {
     jquery_update_jqueryui_cdn($custom_path, $javascript, $path, $min, $names, $jqueryui_version);
     return;
@@ -656,7 +647,7 @@ function jquery_update_jqueryui_replace(array &$javascript, $cdn, $path, $min) {
  *
  * @return array
  *   The keys are library hooks and the values are each arrays of 2 file name
- *   segments as values. The first file name segment can be used to reach Drupal
+ *   segments as values. The first file name segment can be used to reach Backdrop
  *   core's jQuery UI effect files, and the second file name segment can be used
  *   to construct a path to the equivalent replacement jQuery UI effect file
  *   provided by jquery_update.module.
@@ -721,7 +712,7 @@ function jquery_update_jqueryui_cdn($cdn, array &$javascript, $path, $min, $name
   $jspath = $path . '/replace/ui/ui/' . ($min == '.min' ? 'minified/' : '');
   foreach ($names as $name => $file) {
     list($file_core, $file_updated) = is_array($file) ? $file : array($file, $file);
-    $corefile = 'misc/ui/jquery.' . $file_core . '.min.js';
+    $corefile = 'core/misc/ui/jquery.' . $file_core . '.min.js';
     // Remove the core files.
     unset($javascript[$name]['js'][$corefile]);
     $javascript[$name]['version'] = $jqueryui_version;
@@ -762,7 +753,7 @@ function jquery_update_jqueryui_local(array &$javascript, $path, $min, array $na
   $jspath = $path . '/replace/ui/ui/' . ($min == '.min' ? 'minified/' : '');
   foreach ($names as $name => $file) {
     list($file_core, $file_updated) = is_array($file) ? $file : array($file, $file);
-    $corefile = 'misc/ui/jquery.' . $file_core . '.min.js';
+    $corefile = 'core/misc/ui/jquery.' . $file_core . '.min.js';
     $javascript[$name]['js'][$corefile]['data'] = $jspath . 'jquery.' . $file_updated . $min . '.js';
     $javascript[$name]['version'] = '1.10.2';
   }
@@ -793,17 +784,18 @@ function jquery_update_permission() {
  *   version.
  */
 function jquery_update_jquery_cookie_replace(array &$libraries, $path, $min) {
-  $custom_path = variable_get('jquery_update_custom_path_cookie', FALSE);
+  $config = config('jquery_update.settings');
+  $custom_path = $config->get('custom_path_cookie');
   if (empty($custom_path)) {
     // Replace the jQuery Cookie plugin.
-    $libraries['cookie']['js']['misc/jquery.cookie.js']['data'] = $path . '/replace/ui/external/jquery.cookie.js';
+    $libraries['cookie']['js']['core/misc/jquery.cookie.js']['data'] = $path . '/replace/ui/external/jquery.cookie.js';
     // Noting the version based on git commit as no version number is available.
     $libraries['cookie']['version'] = '67fb34f6a866c40d0570';
   }
   else {
-    $libraries['cookie']['js']['misc/jquery.cookie.js']['data'] = $custom_path;
-    $libraries['cookie']['js']['misc/jquery.cookie.js']['type'] = url_is_external($custom_path) ? 'external' : 'file';
-    $version = variable_get('jquery_update_custom_version_jquery_cookie', FALSE);
+    $libraries['cookie']['js']['core/misc/jquery.cookie.js']['data'] = $custom_path;
+    $libraries['cookie']['js']['core/misc/jquery.cookie.js']['type'] = url_is_external($custom_path) ? 'external' : 'file';
+    $version = $config->get('custom_version_jquery_cookie');
     if ($version !== FALSE) {
       $libraries['cookie']['version'] = $version;
     }
@@ -824,29 +816,31 @@ function jquery_update_jquery_cookie_replace(array &$libraries, $path, $min) {
  *   The jQuery version to be used.
  */
 function jquery_update_jquery_form_replace(array &$libraries, $path, $min, $jquery_version) {
-  $custom_path = variable_get('jquery_update_custom_path_form', FALSE);
+  $config = config('jquery_update.settings');
+  $custom_path = $config->get('custom_path_form');
   if (empty($custom_path)) {
     // Replace jQuery Form.
+    // @todo Backdrop's minimum is 4.2.1 so don't need this anymore.
     $libraries['jquery.form']['website'] = 'https://github.com/jquery-form/form';
     $jquery_form_versions = array(
       // jQuery Form 4, prior to version 4.2.1, had a serious regression that
-      // broke Drupal's AJAX system because it didn't deserialize "+" back into
+      // broke Backdrop's AJAX system because it didn't deserialize "+" back into
       // spaces which would cause triggering button values to not match in PHP.
       // @see https://www.drupal.org/node/2860158
       '4.2.1' => '1.7',
     );
     foreach ($jquery_form_versions as $jquery_form_version => $compatibility) {
       if (version_compare($jquery_version, $compatibility, '>=')) {
-        $libraries['jquery.form']['js']['misc/jquery.form.js']['data'] = $path . '/replace/jquery.form/4/jquery.form' . $min . '.js';
+        $libraries['jquery.form']['js']['core/misc/jquery.form.js']['data'] = $path . '/replace/jquery.form/4/jquery.form' . $min . '.js';
         $libraries['jquery.form']['version'] = $jquery_form_version;
         break;
       }
     }
   }
   else {
-    $libraries['jquery.form']['js']['misc/jquery.form.js']['data'] = $custom_path;
-    $libraries['jquery.form']['js']['misc/jquery.form.js']['type'] = url_is_external($custom_path) ? 'external' : 'file';
-    $version = variable_get('jquery_update_custom_version_jquery_form', FALSE);
+    $libraries['jquery.form']['js']['core/misc/jquery.form.js']['data'] = $custom_path;
+    $libraries['jquery.form']['js']['core/misc/jquery.form.js']['type'] = url_is_external($custom_path) ? 'external' : 'file';
+    $version = $config->get('custom_version_jquery_form');
     if ($version !== FALSE) {
       $libraries['jquery.form']['version'] = $version;
     }
@@ -860,9 +854,10 @@ function jquery_update_jquery_form_replace(array &$libraries, $path, $min, $jque
  *   A version string e.g. "3.6.1" or FALSE
  */
 function jquery_update_latest_version($library = 'jquery', $refresh = FALSE) {
-  $check_enabled = variable_get('jquery_update_check_latest_versions', TRUE);
+  $config = config('jquery_update.settings');
+  $check_enabled = $config->get('check_latest_versions');
   $library_variable_name = _jquery_update_clean_library_name($library);
-  $version = variable_get('jquery_update_latest_version_' . $library_variable_name, FALSE);
+  $version = $config->get('latest_version_' . $library_variable_name);
   if ($check_enabled && ($refresh || empty($version))) {
     $r = backdrop_http_request('https://api.cdnjs.com/libraries/' . $library . '?fields=version');
     if ($r->code == 200) {
@@ -870,7 +865,8 @@ function jquery_update_latest_version($library = 'jquery', $refresh = FALSE) {
       $version = json_decode($r->data)->version;
       if ($version != $old_version) {
         watchdog('jquery_update', 'Updated latest %library version to %version', array('%library' => $library, '%version' => $version));
-        variable_set('jquery_update_latest_version_' . $library_variable_name, $version);
+        $config->set('latest_version_' . $library_variable_name, $version);
+        $config->save();
       }
     }
   }
@@ -888,7 +884,7 @@ function jquery_update_cron() {
  * Refresh latest version info via cron or manually.
  */
 function _jquery_update_refresh_version_info($refresh = FALSE) {
-  $last_update = variable_get('jquery_update_latest_versions_checked', FALSE);
+  $last_update = state_get('jquery_update_latest_versions_checked', FALSE);
   if ($refresh || !$last_update || (REQUEST_TIME - $last_update) >= 24 * 60 * 60) {
     $libraries = array(
       'jquery',
@@ -900,12 +896,12 @@ function _jquery_update_refresh_version_info($refresh = FALSE) {
     foreach ($libraries as $library) {
       $version = jquery_update_latest_version($library, TRUE);
     }
-    variable_set('jquery_update_latest_versions_checked', REQUEST_TIME);
+    state_set('jquery_update_latest_versions_checked', REQUEST_TIME);
   }
 }
 
 /**
- * Helper to clean up library names for use as Drupal variables.
+ * Helper to clean up library names for use as Backdrop variables.
  */
 function _jquery_update_clean_library_name($library) {
   $search = array('.', '-');
@@ -920,8 +916,9 @@ function _jquery_update_clean_library_name($library) {
  */
 function _jquery_update_check_available_updates() {
   $results = array();
+  $config = config('jquery_update.settings');
   // Nothing to do if checking of latest versions is not enabled.
-  if (!variable_get('jquery_update_check_latest_versions', TRUE)) {
+  if (!$config->get('check_latest_versions')) {
     return $results;
   }
   $libraries = array(
@@ -941,9 +938,10 @@ function _jquery_update_check_available_updates() {
  * Check a specific library for available updates.
  */
 function _jquery_update_check_available_update($library) {
+  $config = config('jquery_update.settings');
   $library_variable_name = _jquery_update_clean_library_name($library);
-  $custom_version = variable_get('jquery_update_custom_version_' . $library_variable_name, FALSE);
-  $latest_version = variable_get('jquery_update_latest_version_' . $library_variable_name, FALSE);
+  $custom_version = $config->get('custom_version_' . $library_variable_name);
+  $latest_version = $config->get('latest_version_' . $library_variable_name);
   if (!$custom_version || !$latest_version) {
     return FALSE;
   }
@@ -976,22 +974,24 @@ function _jquery_update_map_to_supported_version($version) {
  * Helper to convert all jQuery version settings to a supported version.
  */
 function _jquery_update_convert_settings_to_supported_versions() {
-  $jquery_version = variable_get('jquery_update_jquery_version', JQUERY_UPDATE_DEFAULT_JQUERY_VERSION);
+  $config = config('jquery_update.settings');
+  $jquery_version = $config->get('jquery_version');
   $mapped_version = _jquery_update_map_to_supported_version($jquery_version);
   if ($jquery_version != $mapped_version) {
-    variable_set('jquery_update_jquery_version', $mapped_version);
+    $config->set('jquery_version', $mapped_version);
+    $config->save();
     watchdog('jquery_update', 'jquery_update_jquery_version updated from @before to @after',
       array('@before' => $jquery_version, '@after' => $mapped_version), WATCHDOG_WARNING);
   }
   $themes = list_themes();
   foreach ($themes as $theme_key => $theme) {
-    $theme_settings = variable_get('theme_' . $theme_key . '_settings', array());
-    if (in_array('jquery_update_jquery_version', array_keys($theme_settings))) {
-      $theme_jquery_version = $theme_settings['jquery_update_jquery_version'];
+    $theme_settings = config($theme_key . '.settings');
+    if ($theme_settings->get('jquery_version')) {
+      $theme_jquery_version = $theme_settings->get('jquery_version');
       $mapped_theme_jquery_version = _jquery_update_map_to_supported_version($theme_jquery_version);
       if ($theme_jquery_version != $mapped_theme_jquery_version) {
-        $theme_settings['jquery_update_jquery_version'] = $mapped_theme_jquery_version;
-        variable_set('theme_' . $theme_key . '_settings', $theme_settings);
+        $theme_settings->set('jquery_version', $mapped_theme_jquery_version);
+        $theme_settings->save();
         watchdog('jquery_update', 'theme settings for @theme: jquery_update_jquery_version updated from @before to @after',
           array(
             '@theme' => $theme_key,

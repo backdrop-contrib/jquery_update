@@ -1,0 +1,22 @@
+{
+    "_config_name": "jquery_update.settings",
+    "jquery_version": "1.12",
+    "custom_path_cookie": false,
+    "custom_path_form": false,
+    "custom_path_jquery": false,
+    "custom_path_jqueryui": false,
+    "custom_path_migrate": false,
+    "custom_version_jquery": false,
+    "custom_version_jquery_cookie": false,
+    "custom_version_jquery_form": false,
+    "custom_version_jquery_migrate": false,
+    "custom_version_jqueryui": false,
+    "compression_type": null,
+    "jquery_cdn": "none",
+    "jquery_migrate_enable": false,
+    "jquery_migrate_cdn": "none",
+    "jquery_migrate_warnings": false,
+    "jquery_migrate_trace": false,
+    "check_latest_versions": false,
+    "warning_available_update": true
+}

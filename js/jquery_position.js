@@ -2,12 +2,12 @@
  * Workaround for .position() behaviour which was changed in jQuery 3.3
  * @see https://github.com/jquery/api.jquery.com/issues/1081
  */
-var Drupal = Drupal || {};
+var Backdrop = Backdrop || {};
 
-(function ($, Drupal) {
-  // Overload Drupal.jsAC.prototype.populatePopup
-  if (Drupal.jsAC !== undefined && Drupal.jsAC.prototype.populatePopup !== undefined) {
-    Drupal.jsAC.prototype.populatePopup = function () {
+(function ($, Backdrop) {
+  // Overload Backdrop.jsAC.prototype.populatePopup
+  if (Backdrop.jsAC !== undefined && Backdrop.jsAC.prototype.populatePopup !== undefined) {
+    Backdrop.jsAC.prototype.populatePopup = function () {
       var $input = $(this.input);
       var offset = $input.offset();
       var offsetParent = $input.offsetParent().offset();
@@ -31,4 +31,4 @@ var Drupal = Drupal || {};
       this.db.search(this.input.value);
     };
   }
-})(jQuery, Drupal);
+})(jQuery, Backdrop);

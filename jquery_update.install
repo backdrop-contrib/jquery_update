@@ -21,9 +21,9 @@ function jquery_update_requirements($phase) {
     $versions = array();
     $themes = list_themes();
 
-    $admin_theme = variable_get('admin_theme', FALSE);
-    $jquery = drupal_get_library('system', 'jquery');
-    $ui = drupal_get_library('system', 'ui');
+    $admin_theme = config_get('system.core', 'admin_theme');
+    $jquery = backdrop_get_library('system', 'jquery');
+    $ui = backdrop_get_library('system', 'ui');
     if ($GLOBALS['theme_key'] == $admin_theme) {
       $versions['admin_theme']['jquery'] = $jquery['version'];
       $versions['admin_theme']['ui'] = $ui['version'];
@@ -34,7 +34,7 @@ function jquery_update_requirements($phase) {
       $GLOBALS['theme_key'] = $admin_theme;
       try {
         $libraries = array('jquery' => $jquery, 'ui' => $ui);
-        jquery_update_library_alter($libraries, 'system');
+        jquery_update_library_info_alter($libraries, 'system');
         $versions['admin_theme']['jquery'] = $libraries['jquery']['version'];
         $versions['admin_theme']['ui'] = $libraries['ui']['version'];
       }
@@ -54,13 +54,13 @@ function jquery_update_requirements($phase) {
     // Try to retrieve versions for the default theme too. This seems a hacky
     // way to do it, but we cannot rely on theme_get_setting() to reflect what
     // the alter hook will actually set for the jquery libraries.
-    $default_theme = variable_get('theme_default', NULL);
+    $default_theme = config_get('system.core', 'theme_default');
     if (!is_null($default_theme)) {
       $backup_theme_key = $GLOBALS['theme_key'];
       $GLOBALS['theme_key'] = $default_theme;
       try {
         $libraries = array('jquery' => $jquery, 'ui' => $ui);
-        jquery_update_library_alter($libraries, 'system');
+        jquery_update_library_info_alter($libraries, 'system');
         $versions['theme_default']['jquery'] = $libraries['jquery']['version'];
         $versions['theme_default']['ui'] = $libraries['ui']['version'];
       }
@@ -79,6 +79,7 @@ function jquery_update_requirements($phase) {
 
     foreach ($versions as $theme => $library_version) {
 
+      // @todo what's the equivalent of this d7 variable?
       if (!$theme_key = variable_get($theme, FALSE)) {
         $theme_key = $default_theme;
       }
@@ -101,7 +102,7 @@ function jquery_update_requirements($phase) {
     if (!empty($updates_available)) {
       $requirements['jquery_update_library_updates_available'] = array(
         'title' => t('jQuery Update library updates available'),
-        'severity' => variable_get('jquery_update_warning_available_update', TRUE) ? REQUIREMENT_WARNING : REQUIREMENT_INFO,
+        'severity' => config_get('jquery_update.settings', 'warning_available_update') ? REQUIREMENT_WARNING : REQUIREMENT_INFO,
         'value' => format_string('<a href="@link">%libraries</a>', array(
           '@link' => url('admin/config/development/jquery_update', array('fragment' => 'edit-jquery-latest-versions')),
           '%libraries' => implode(', ', $updates_available),
@@ -123,13 +124,9 @@ function jquery_update_requirements($phase) {
  *   The MAJOR.MINOR jQuery version to set.
  */
 function _jquery_update_set_theme_version($theme_key, $version) {
-  // Retrieve the cached theme settings.
-  theme_get_setting('jquery_update_jquery_version', $theme_key);
-  $theme_settings = drupal_static('theme_get_setting', array());
-
   // Set the jQuery version.
-  $theme_settings[$theme_key]['jquery_update_jquery_version'] = $version;
-  variable_set('theme_' . $theme_key . '_settings', $theme_settings[$theme_key]);
+  config_set($theme_key . '.settings', 'jquery_version', $version);
+  cache_clear_all();
 }
 
 /**
@@ -141,82 +138,76 @@ function jquery_update_install() {
 }
 
 /**
- * Implements hook_uninstall().
+ * Set the minimum upgrade version.
+ *
+ * Ensure you've upgraded to the 7.x-4.x version of jquery_update in Drupal 7 before
+ * attempting to upgrade to Backdrop.
  */
-function jquery_update_uninstall() {
-  variable_del('jquery_update_compression_type');
-  variable_del('jquery_update_jquery_version');
-  variable_del('jquery_update_jquery_cdn');
-  variable_del('jquery_update_custom_version_jquery');
-  variable_del('jquery_update_jquery_migrate_enable');
-  variable_del('jquery_update_jquery_migrate_cdn');
-  variable_del('jquery_update_jquery_migrate_warnings');
-  variable_del('jquery_update_jquery_migrate_trace');
-  variable_del('jquery_update_custom_path_jquery');
-  variable_del('jquery_update_custom_version_jquery');
-  variable_del('jquery_update_custom_path_jqueryui');
-  variable_del('jquery_update_custom_version_jqueryui');
-  variable_del('jquery_update_custom_path_cookie');
-  variable_del('jquery_update_custom_version_jquery_cookie');
-  variable_del('jquery_update_custom_path_form');
-  variable_del('jquery_update_custom_version_jquery_form');
-  variable_del('jquery_update_custom_path_migrate');
-  variable_del('jquery_update_custom_version_jquery_migrate');
-  variable_del('jquery_update_check_latest_versions');
-  variable_del('jquery_update_latest_versions_checked');
-  variable_del('jquery_update_latest_version_jquery');
-  variable_del('jquery_update_latest_version_jqueryui');
-  variable_del('jquery_update_latest_version_jquery_cookie');
-  variable_del('jquery_update_latest_version_jquery_form');
-  variable_del('jquery_update_latest_version_jquery_migrate');
-  variable_del('jquery_update_warning_available_update');
+function jquery_update_update_last_removed() {
+  return 7002;
 }
 
 /**
- * Update from Drupal 6.
+ * Update jquery_update from Drupal to Backdrop.
  */
-function jquery_update_update_7000() {
-  if (variable_get('jquery_update_compression_type', 'min') == 'pack') {
-    variable_set('jquery_update_compression_type', 'min');
-  }
-  variable_del('jquery_update_replace');
+function jquery_update_update_1000() {
+  $config = config('jquery_update.settings');
 
-  // Restore the default version of jQuery.
-  variable_del('jquery_update_jquery_version');
-}
+  // Migrate variables
+  $config->set('compression_type', update_variable_get('jquery_update_compression_type', 'min'));
+  $config->set('jquery_version', update_variable_get('jquery_update_jquery_version', '1.12'));
+  $config->set('jquery_cdn', update_variable_get('jquery_update_jquery_cdn', 'none'));
+  $config->set('custom_version_jquery', update_variable_get('jquery_update_custom_version_jquery', FALSE));
+  $config->set('jquery_migrate_enable', update_variable_get('jquery_update_jquery_migrate_enable', FALSE));
+  $config->set('jquery_migrate_cdn', update_variable_get('jquery_update_jquery_migrate_cdn', FALSE));
+  $config->set('jquery_migrate_warnings', update_variable_get('jquery_update_jquery_migrate_warnings', FALSE));
+  $config->set('jquery_migrate_trace', update_variable_get('jquery_update_jquery_migrate_trace', FALSE));
+  $config->set('custom_path_jquery', update_variable_get('jquery_update_custom_path_jquery', FALSE));
+  $config->set('custom_version_jquery', update_variable_get('jquery_update_custom_version_jquery', FALSE));
+  $config->set('custom_path_jqueryui', update_variable_get('jquery_update_custom_path_jqueryui', FALSE));
+  $config->set('custom_version_jqueryui', update_variable_get('jquery_update_custom_version_jqueryui', FALSE));
+  $config->set('custom_path_cookie', update_variable_get('jquery_update_custom_path_cookie', FALSE));
+  $config->set('custom_version_jquery_cookie', update_variable_get('jquery_update_custom_version_jquery_cookie', FALSE));
+  $config->set('custom_path_form', update_variable_get('jquery_update_custom_path_form', FALSE));
+  $config->set('custom_version_jquery_form', update_variable_get('jquery_update_custom_version_jquery_form', FALSE));
+  $config->set('custom_path_migrate', update_variable_get('jquery_update_custom_path_migrate', FALSE));
+  $config->set('custom_version_jquery_migrate', update_variable_get('jquery_update_custom_version_jquery_migrate', FALSE));
+  $config->set('check_latest_versions', update_variable_get('jquery_update_check_latest_versions', TRUE));
+  $config->set('latest_version_jquery', update_variable_get('jquery_update_latest_version_jquery', FALSE));
+  $config->set('latest_version_jqueryui', update_variable_get('jquery_update_latest_version_jqueryui', FALSE));
+  $config->set('latest_version_jquery_cookie', update_variable_get('jquery_update_latest_version_jquery_cookie', FALSE));
+  $config->set('latest_version_jquery_form', update_variable_get('jquery_update_latest_version_jquery_form', FALSE));
+  $config->set('latest_version_jquery_migrate', update_variable_get('jquery_update_latest_version_jquery_migrate', FALSE));
+  $config->set('warning_available_update', update_variable_get('jquery_update_warning_available_update', TRUE));
+  $config->save();
 
-/**
- * Convert jquery_update_jquery_admin_version to an admin theme setting.
- */
-function jquery_update_update_7001() {
-  // Detect if the previous feature of the "admin version" variable is set.
-  // @see https://www.drupal.org/node/1969244
-  $admin_theme = variable_get('admin_theme', FALSE);
-  $admin_version = variable_get('jquery_update_jquery_admin_version', 'default');
+  state_set('latest_versions_checked', update_variable_get('jquery_update_latest_versions_checked', FALSE));
 
-  // Ensure that if "seven" is set as the admin theme and no "admin version"
-  // is present, the version used on the admin theme is the "default" core
-  // provides to ensure major compatibility with contrib modules.
-  if (!$admin_version && $admin_theme === 'seven') {
-    $admin_version = 'default';
-  }
-  // Skip this update if the "admin version" was never set and the admin theme
-  // is not set as "seven".
-  elseif (!$admin_version) {
-    return;
-  }
-
-  // Continue setting the admin theme jQuery version.
-  _jquery_update_set_theme_version($admin_theme, $admin_version);
-
-  // Remove the admin version variable.
-  variable_del('jquery_update_jquery_admin_version');
-}
-
-/**
- * Convert all jQuery version settings to be one of the two supported versions.
- */
-function jquery_update_update_7002() {
-  module_load_include('module', 'jquery_update');
-  _jquery_update_convert_settings_to_supported_versions();
+  // Delete variables.
+  update_variable_del('jquery_update_compression_type');
+  update_variable_del('jquery_update_jquery_version');
+  update_variable_del('jquery_update_jquery_cdn');
+  update_variable_del('jquery_update_custom_version_jquery');
+  update_variable_del('jquery_update_jquery_migrate_enable');
+  update_variable_del('jquery_update_jquery_migrate_cdn');
+  update_variable_del('jquery_update_jquery_migrate_warnings');
+  update_variable_del('jquery_update_jquery_migrate_trace');
+  update_variable_del('jquery_update_custom_path_jquery');
+  update_variable_del('jquery_update_custom_version_jquery');
+  update_variable_del('jquery_update_custom_path_jqueryui');
+  update_variable_del('jquery_update_custom_version_jqueryui');
+  update_variable_del('jquery_update_custom_path_cookie');
+  update_variable_del('jquery_update_custom_version_jquery_cookie');
+  update_variable_del('jquery_update_custom_path_form');
+  update_variable_del('jquery_update_custom_version_jquery_form');
+  update_variable_del('jquery_update_custom_path_migrate');
+  update_variable_del('jquery_update_custom_version_jquery_migrate');
+  update_variable_del('jquery_update_check_latest_versions');
+  update_variable_del('jquery_update_latest_versions_checked');
+  update_variable_del('jquery_update_latest_version_jquery');
+  update_variable_del('jquery_update_latest_version_jqueryui');
+  update_variable_del('jquery_update_latest_version_jquery_cookie');
+  update_variable_del('jquery_update_latest_version_jquery_form');
+  update_variable_del('jquery_update_latest_version_jquery_migrate');
+  update_variable_del('jquery_update_warning_available_update');
 }
