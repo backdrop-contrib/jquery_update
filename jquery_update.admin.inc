@@ -389,7 +389,7 @@ function jquery_update_settings_form_submit_early($form, &$form_state) {
   foreach ($variables as $variable) {
     if (empty($form_state['values'][$variable])) {
       unset($form_state['values'][$variable]);
-      $config->set($variable, '');
+      $config->set($variable, FALSE);
     }
   }
   $config->save();
@@ -428,7 +428,7 @@ function jquery_update_add_latest_version_info(&$form) {
     '#description' => t('Information about the latest available versions of the jQuery libraries the jQuery Update module integrates.'),
   );
 
-  $last_update = $config->get('latest_versions_checked', FALSE);
+  $last_update = state_get('jquery_update_latest_versions_checked', FALSE);
   if ($last_update) {
     $message = t('Version info last updated %datetime', array('%datetime' => format_date($last_update)));
     $form['jquery_latest_versions']['#description'] .= '<br />' . $message;

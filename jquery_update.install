@@ -173,15 +173,16 @@ function jquery_update_update_1000() {
   $config->set('custom_path_migrate', update_variable_get('jquery_update_custom_path_migrate', FALSE));
   $config->set('custom_version_jquery_migrate', update_variable_get('jquery_update_custom_version_jquery_migrate', FALSE));
   $config->set('check_latest_versions', update_variable_get('jquery_update_check_latest_versions', TRUE));
-  $config->set('latest_version_jquery', update_variable_get('jquery_update_latest_version_jquery', FALSE));
-  $config->set('latest_version_jqueryui', update_variable_get('jquery_update_latest_version_jqueryui', FALSE));
-  $config->set('latest_version_jquery_cookie', update_variable_get('jquery_update_latest_version_jquery_cookie', FALSE));
-  $config->set('latest_version_jquery_form', update_variable_get('jquery_update_latest_version_jquery_form', FALSE));
-  $config->set('latest_version_jquery_migrate', update_variable_get('jquery_update_latest_version_jquery_migrate', FALSE));
   $config->set('warning_available_update', update_variable_get('jquery_update_warning_available_update', TRUE));
   $config->save();
 
-  state_set('latest_versions_checked', update_variable_get('jquery_update_latest_versions_checked', FALSE));
+  // Convert some to state variables.
+  state_set('jquery_update_latest_versions_checked', update_variable_get('jquery_update_latest_versions_checked', FALSE));
+  state_set('jquery_update_latest_version_jquery', update_variable_get('jquery_update_latest_version_jquery', FALSE));
+  state_set('jquery_update_latest_version_jqueryui', update_variable_get('jquery_update_latest_version_jqueryui', FALSE));
+  state_set('jquery_update_latest_version_jquery_cookie', update_variable_get('jquery_update_latest_version_jquery_cookie', FALSE));
+  state_set('jquery_update_latest_version_jquery_form', update_variable_get('jquery_update_latest_version_jquery_form', FALSE));
+  state_set('jquery_update_latest_version_jquery_migrate', update_variable_get('jquery_update_latest_version_jquery_migrate', FALSE));
 
   // Delete variables.
   update_variable_del('jquery_update_compression_type');

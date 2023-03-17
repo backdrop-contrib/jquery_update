@@ -856,7 +856,7 @@ function jquery_update_latest_version($library = 'jquery', $refresh = FALSE) {
   $config = config('jquery_update.settings');
   $check_enabled = $config->get('check_latest_versions');
   $library_variable_name = _jquery_update_clean_library_name($library);
-  $version = $config->get('latest_version_' . $library_variable_name);
+  $version = state_get('jquery_update_latest_version_' . $library_variable_name);
   if ($check_enabled && ($refresh || empty($version))) {
     $r = backdrop_http_request('https://api.cdnjs.com/libraries/' . $library . '?fields=version');
     if ($r->code == 200) {
@@ -864,8 +864,7 @@ function jquery_update_latest_version($library = 'jquery', $refresh = FALSE) {
       $version = json_decode($r->data)->version;
       if ($version != $old_version) {
         watchdog('jquery_update', 'Updated latest %library version to %version', array('%library' => $library, '%version' => $version));
-        $config->set('latest_version_' . $library_variable_name, $version);
-        $config->save();
+        state_set('jquery_update_latest_version_' . $library_variable_name, $version);
       }
     }
   }
