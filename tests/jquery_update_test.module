@@ -10,18 +10,18 @@
  */
 function jquery_update_test_init() {
   // Add libraries so that the script tags appear in basic pages.
-  drupal_add_library('system', 'ui.autocomplete');
-  drupal_add_library('system', 'jquery.form');
-  drupal_add_library('system', 'cookie');
+  backdrop_add_library('system', 'ui.autocomplete');
+  backdrop_add_library('system', 'jquery.form');
+  backdrop_add_library('system', 'cookie');
 }
 
 /**
  * Implements hook_menu().
  */
 function jquery_update_test_menu() {
-  $items['jquery-update-test/drupal-add-js'] = array(
-    'title' => 'drupal_add_js()',
-    'page callback' => 'jquery_update_test_drupal_add_js',
+  $items['jquery-update-test/backdrop-add-js'] = array(
+    'title' => 'backdrop_add_js()',
+    'page callback' => 'jquery_update_test_backdrop_add_js',
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
@@ -29,8 +29,8 @@ function jquery_update_test_menu() {
 }
 
 /**
- * Menu callback to output return value of drupal_add_js().
+ * Menu callback to output return value of backdrop_add_js().
  */
-function jquery_update_test_drupal_add_js() {
-  drupal_json_output(drupal_add_js());
+function jquery_update_test_backdrop_add_js() {
+  backdrop_json_output(backdrop_add_js());
 }

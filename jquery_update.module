@@ -12,7 +12,7 @@ define('JQUERY_UPDATE_DEFAULT_JQUERY_VERSION', '2.2');
  */
 function jquery_update_config_info() {
   $prefixes['jquery_update.settings'] = array(
-    'label' => t('JQuery Update settings'),
+    'label' => t('jQuery Update settings'),
     'group' => t('Configuration'),
   );
   return $prefixes;

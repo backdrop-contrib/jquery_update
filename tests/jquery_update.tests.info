@@ -1,0 +1,5 @@
+[JqueryUpdateTestCase]
+name = jQuery Update functionality
+description = Tests functionality of the jQuery Update module.
+group = jQuery Update
+file = jquery_update.test
