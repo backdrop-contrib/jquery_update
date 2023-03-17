@@ -1,6 +1,6 @@
 {
     "_config_name": "jquery_update.settings",
-    "jquery_version": "1.12",
+    "jquery_version": "2.2",
     "custom_path_cookie": false,
     "custom_path_form": false,
     "custom_path_jquery": false,

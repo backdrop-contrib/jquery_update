@@ -5,7 +5,7 @@
  * Updates Backdrop to use the latest version of jQuery.
  */
 
-define('JQUERY_UPDATE_DEFAULT_JQUERY_VERSION', '1.12');
+define('JQUERY_UPDATE_DEFAULT_JQUERY_VERSION', '2.2');
 
 /**
  * Implements hook_config_info().
@@ -222,11 +222,11 @@ function jquery_update_get_versions() {
   static $backdrop_static_fast;
   if (!isset($backdrop_static_fast)) {
     $backdrop_static_fast['versions'] = &backdrop_static(__FUNCTION__, backdrop_map_assoc(array(
-      // 1.x.
-      '1.12',
-
       // 2.x.
       '2.2',
+
+      // 3.x
+      '3.6',
     )));
   }
   return $backdrop_static_fast['versions'];
@@ -319,12 +319,11 @@ function jquery_update_jquery_replace(array &$javascript, $cdn, $path, $min, $ve
   // Make sure to use the latest version in given branch.
   $trueversion = NULL;
   switch ($version) {
-    case '1.12':
-      $trueversion = '1.12.4';
-      break;
-
     case '2.2':
       $trueversion = '2.2.4';
+      break;
+    case '3.6':
+      $trueversion = '3.6.4';
       break;
   }
   $javascript['jquery']['version'] = $trueversion;
@@ -966,6 +965,9 @@ function _jquery_update_map_to_supported_version($version) {
   }
   if (version_compare($version, '1', '>')) {
     return '2.2';
+  }
+  if (version_compare($version, '2', '>')) {
+    return '3.6';
   }
   return FALSE;
 }

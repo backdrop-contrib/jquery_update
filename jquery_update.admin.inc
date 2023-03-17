@@ -53,7 +53,7 @@ function jquery_update_settings_form() {
   // Go through all themes.
   foreach ($themes as $theme_key => $theme) {
     // Skip disabled themes, but only if they are not configured as admin
-    // theme. This is an inconsistency in drupal core, that you can select a
+    // theme. This is an inconsistency in Backdrop core, that you can select a
     // disabled theme as admin theme.
     if (!$theme->status && $theme_key !== $admin_theme) {
       continue;
