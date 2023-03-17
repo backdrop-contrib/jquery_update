@@ -93,7 +93,7 @@ function jquery_update_settings_form() {
             'module-link-configure',
           ),
         ),
-        'query' => drupal_get_destination(),
+        'query' => backdrop_get_destination(),
         'fragment' => 'edit-jquery-update',
       )),
     );
@@ -430,7 +430,7 @@ function jquery_update_add_latest_version_info(&$form) {
   $refresh_url = url('admin/config/development/jquery_update/refresh-version-info',
     array(
       'query' => array(
-        'token' => drupal_get_token('refresh-version-info'),
+        'token' => backdrop_get_token('refresh-version-info'),
       ),
     )
   );
@@ -465,7 +465,7 @@ function jquery_update_add_latest_version_info(&$form) {
       );
       $form['jquery_latest_versions']['latest_version_' . $library]['#description'] = '<strong>' . $message . '</strong>';
       if (variable_get('jquery_update_warning_available_update', TRUE)) {
-        drupal_set_message($message, 'warning', FALSE);
+        backdrop_set_message($message, 'warning', FALSE);
       }
     }
   }
@@ -492,12 +492,12 @@ function jquery_update_add_latest_version_info(&$form) {
  * @see system_run_cron()
  */
 function jquery_update_refresh_version_info() {
-  if (!isset($_GET['token']) || !drupal_valid_token($_GET['token'], 'refresh-version-info')) {
+  if (!isset($_GET['token']) || !backdrop_valid_token($_GET['token'], 'refresh-version-info')) {
     return MENU_ACCESS_DENIED;
   }
 
   _jquery_update_refresh_version_info(TRUE);
-  drupal_set_message(t('Attempted to refresh latest version info.'));
+  backdrop_set_message(t('Attempted to refresh latest version info.'));
 
-  drupal_goto('admin/config/development/jquery_update', array('fragment' => 'edit-jquery-latest-versions'));
+  backdrop_goto('admin/config/development/jquery_update', array('fragment' => 'edit-jquery-latest-versions'));
 }

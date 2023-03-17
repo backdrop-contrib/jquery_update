@@ -21,11 +21,22 @@ function jquery_update_help($path, $arg) {
 }
 
 /**
- * Implements hook_library().
+ * Implements hook_config_info().
  */
-function jquery_update_library() {
+function jquery_update_config_info() {
+  $prefixes['jquery_update.settings'] = array(
+    'label' => t('JQuery Update settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
+}
+
+/**
+ * Implements hook_library_info().
+ */
+function jquery_update_library_info() {
   // Register libraries available in the external directory.
-  $path = drupal_get_path('module', 'jquery_update') . '/ui/external';
+  $path = backdrop_get_path('module', 'jquery_update') . '/ui/external';
   $libraries['qunit'] = array(
     'title' => 'QUnit',
     'js' => array(
@@ -42,7 +53,7 @@ function jquery_update_library() {
   $libraries['jquery_update.ajax.fix'] = array(
     'title' => 'jQuery Update Version Fix',
     'js' => array(
-      drupal_get_path('module', 'jquery_update') . '/js/jquery_update.js' => array(
+      backdrop_get_path('module', 'jquery_update') . '/js/jquery_update.js' => array(
         'group' => JS_LIBRARY,
         'weight' => 3,
       ),
@@ -52,7 +63,7 @@ function jquery_update_library() {
   $libraries['jquery_update.browser.fix'] = array(
     'title' => 'jQuery Update Browser Fix',
     'js' => array(
-      drupal_get_path('module', 'jquery_update') . '/js/jquery_browser.js' => array(
+      backdrop_get_path('module', 'jquery_update') . '/js/jquery_browser.js' => array(
         'group' => JS_LIBRARY,
         'weight' => 3,
       ),
@@ -62,7 +73,7 @@ function jquery_update_library() {
   $libraries['jquery_update.position.fix'] = array(
     'title' => 'jQuery Update Position Fix',
     'js' => array(
-      drupal_get_path('module', 'jquery_update') . '/js/jquery_position.js' => array(
+      backdrop_get_path('module', 'jquery_update') . '/js/jquery_position.js' => array(
         'group' => JS_THEME,
         'weight' => 2,
       ),
@@ -95,17 +106,17 @@ function jquery_update_library() {
 }
 
 /**
- * Implements hook_library_alter().
+ * Implements hook_library_info_alter().
  *
  * {@inheritdoc}
  */
-function jquery_update_library_alter(&$libraries, $module) {
+function jquery_update_library_info_alter(&$libraries, $module) {
   // Immediately return if not modifying the system libraries.
   if ($module !== 'system') {
     return;
   }
 
-  $path = drupal_get_path('module', 'jquery_update');
+  $path = backdrop_get_path('module', 'jquery_update');
   $min = variable_get('jquery_update_compression_type', 'min') == 'none' ? '' : '.min';
   $jquery_version = variable_get('jquery_update_jquery_version', JQUERY_UPDATE_DEFAULT_JQUERY_VERSION);
 
@@ -123,7 +134,7 @@ function jquery_update_library_alter(&$libraries, $module) {
     $ajax_version = $_POST['ajax_page_state']['jquery_version'];
     $token = $_POST['ajax_page_state']['jquery_version_token'];
     $allowed_versions = array('default') + jquery_update_get_versions();
-    if (in_array($ajax_version, $allowed_versions) && drupal_valid_token($token, $ajax_version)) {
+    if (in_array($ajax_version, $allowed_versions) && backdrop_valid_token($token, $ajax_version)) {
       $jquery_version = $ajax_version;
     }
   }
@@ -135,7 +146,7 @@ function jquery_update_library_alter(&$libraries, $module) {
     'data' => array(
       'ajaxPageState' => array(
         'jquery_version' => $jquery_version,
-        'jquery_version_token' => drupal_get_token($jquery_version),
+        'jquery_version_token' => backdrop_get_token($jquery_version),
       ),
     ),
     'type' => 'setting',
@@ -173,7 +184,7 @@ function jquery_update_menu() {
   $items['admin/config/development/jquery_update'] = array(
     'title' => 'jQuery Update',
     'description' => 'Configure settings related to the jQuery upgrade, the library path and compression.',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('jquery_update_settings_form'),
     'access arguments' => array('administer jquery update'),
     'file' => 'jquery_update.admin.inc',
@@ -218,11 +229,11 @@ function jquery_update_form_system_theme_settings_alter(&$form, $form_state) {
  *   The available jQuery versions.
  */
 function jquery_update_get_versions() {
-  // Use the advanced drupal_static() pattern, since this has the potential
+  // Use the advanced backdrop_static() pattern, since this has the potential
   // to be called very often.
-  static $drupal_static_fast;
-  if (!isset($drupal_static_fast)) {
-    $drupal_static_fast['versions'] = &drupal_static(__FUNCTION__, drupal_map_assoc(array(
+  static $backdrop_static_fast;
+  if (!isset($backdrop_static_fast)) {
+    $backdrop_static_fast['versions'] = &backdrop_static(__FUNCTION__, backdrop_map_assoc(array(
       // 1.x.
       '1.12',
 
@@ -230,7 +241,7 @@ function jquery_update_get_versions() {
       '2.2',
     )));
   }
-  return $drupal_static_fast['versions'];
+  return $backdrop_static_fast['versions'];
 }
 
 /**
@@ -582,7 +593,7 @@ function jquery_update_jqueryui_replace(array &$javascript, $cdn, $path, $min) {
   // Fix dependencies.
   $javascript['ui.autocomplete']['dependencies'][] = array('system', 'ui.menu');
   // Replace all CSS files.
-  $names = drupal_map_assoc(array(
+  $names = backdrop_map_assoc(array(
     'ui.accordion', 'ui.autocomplete', 'ui.button', 'ui.datepicker', 'ui.dialog',
     'ui.progressbar', 'ui.resizable', 'ui.selectable', 'ui.slider', 'ui.tabs',
     'ui.menu', 'ui.spinner', 'ui.tooltip',
@@ -596,7 +607,7 @@ function jquery_update_jqueryui_replace(array &$javascript, $cdn, $path, $min) {
   $javascript['ui']['css']['misc/ui/jquery.ui.theme.css']['data'] = $csspath . 'jquery.ui.theme' . $min . '.css';
 
   // Replace jQuery UI's JavaScript, beginning by defining the mapping.
-  $names = drupal_map_assoc(array(
+  $names = backdrop_map_assoc(array(
     'ui.accordion', 'ui.autocomplete', 'ui.button', 'ui.datepicker', 'ui.dialog', 'ui.draggable',
     'ui.droppable', 'ui.mouse', 'ui.position', 'ui.progressbar', 'ui.resizable', 'ui.selectable',
     'ui.slider', 'ui.sortable', 'ui.tabs', 'ui.widget', 'ui.spinner', 'ui.menu', 'ui.tooltip',
@@ -853,7 +864,7 @@ function jquery_update_latest_version($library = 'jquery', $refresh = FALSE) {
   $library_variable_name = _jquery_update_clean_library_name($library);
   $version = variable_get('jquery_update_latest_version_' . $library_variable_name, FALSE);
   if ($check_enabled && ($refresh || empty($version))) {
-    $r = drupal_http_request('https://api.cdnjs.com/libraries/' . $library . '?fields=version');
+    $r = backdrop_http_request('https://api.cdnjs.com/libraries/' . $library . '?fields=version');
     if ($r->code == 200) {
       $old_version = $version;
       $version = json_decode($r->data)->version;
