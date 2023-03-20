@@ -78,9 +78,7 @@ function jquery_update_requirements($phase) {
     }
 
     foreach ($versions as $theme => $library_version) {
-
-      // @todo what's the equivalent of this d7 variable?
-      if (!$theme_key = variable_get($theme, FALSE)) {
+      if (!$theme_key = config_get('system.core', $theme)) {
         $theme_key = $default_theme;
       }
       $theme_name = $themes[$theme_key]->info['name'];
